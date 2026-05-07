@@ -34,6 +34,7 @@ import {
 import { ChevronLeft, Loader2, Mail } from "lucide-react";
 import { LoginFormValues } from "@/types/auth/login";
 import Link from "next/link";
+import StepImage from "@/components/shared/step-image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -166,23 +167,23 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#020617]">
       <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
-        <div className="absolute inset-y-0 left-0 z-0 w-4/6 rounded-2xl bg-[#0F172A]" />
+        <div className="absolute inset-y-0 left-0 z-0 w-9/12 rounded-2xl bg-[#0F172A]" />
         {isEmailStep && (
-          <Image
+          <StepImage
             width={2000}
             height={2000}
             src={"/auth/login.png"}
             alt="Kanban Board"
-            className="max-w-1/2 z-10"
+            className="max-w-3/5 z-10"
           />
         )}
         {isOtpStep && (
-          <Image
+          <StepImage
             width={2000}
             height={2000}
             src={"/auth/enter-otp.png"}
             alt="Kanban Board"
-            className="max-w-1/2 z-10"
+            className="max-w-3/5 z-10"
           />
         )}
         <>
@@ -317,7 +318,7 @@ export default function LoginPage() {
                         {isSubmitting ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
-                          "Continue with email"
+                          "Send Code"
                         )}
                       </Button>
                     )}

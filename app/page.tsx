@@ -7,6 +7,7 @@ import { FormFooter } from "@/components/form/form-footer";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import StepImage from "@/components/shared/step-image";
 
 export default async function Home() {
   const session = await getAuthSession();
@@ -18,13 +19,13 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-[#020617] flex items-center justify-center">
       <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
-        <div className="absolute inset-y-0 left-0 z-0 w-4/6 rounded-2xl bg-[#0F172A]" />
-        <Image
+        <div className="absolute inset-y-0 left-0 z-0 w-9/12 rounded-2xl bg-[#0F172A]" />
+        <StepImage
           width={2000}
           height={2000}
           src={"/start-page.png"}
           alt="Kanban Board"
-          className="max-w-1/2 z-10"
+          className="max-w-3/5 z-10"
         />
         <>
           <FormContainer className="relative z-10">

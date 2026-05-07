@@ -1,105 +1,104 @@
 "use client";
-
 import { useState } from "react";
-import { getClientAxios } from "@/lib/api/client";
-import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { getErrorMessage } from "@/types/api/errors";
 import { storeDeviceId } from "@/lib/auth/session";
-import type { AxiosErrorType } from "@/types/api/errors";
-import type {
-  RegisterRequest,
-  RegisterResponse,
-  VerifyOtpRequest,
-  VerifyOtpResponse,
-  OtpResendResponse,
-} from "@/types/auth";
+import { VerifyOtp } from "@/actions/auth/verify-otp";
+import { ResendOtp } from "@/actions/auth/resend-otp";
+import Image from "next/image";
+import FormContainer from "@/components/form/form-container";
+import { FormHeader } from "@/components/form/form-header";
+import { FormBody } from "@/components/form/form-body";
+import { FormFooter } from "@/components/form/form-footer";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
+import { Controller, useForm } from "react-hook-form";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { ChevronLeft, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { RegisterFormValues } from "@/types/auth/login";
+import { Register } from "@/actions/auth/register";
+import StepImage from "@/components/shared/step-image";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const axios = getClientAxios();
-  const store = useAuthStore();
 
-  // Form states
-  const [step, setStep] = useState<"register" | "otp">("register");
-  const [formData, setFormData] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    otp: "",
+  const {
+    handleSubmit,
+    control,
+    setError,
+    clearErrors,
+    resetField,
+    setFocus,
+    formState: { isSubmitting },
+  } = useForm<RegisterFormValues>({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      otp: "",
+    },
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [step, setStep] = useState<"register" | "otp">("register");
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpExpiresIn, setOtpExpiresIn] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
 
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+  const handleRegisterSubmit = async (values: RegisterFormValues) => {
     try {
-      const registerData: RegisterRequest = {
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      };
+      const response = await Register(values);
 
-      const response = await axios.post<RegisterResponse>(
-        "/auth/register",
-        registerData,
-      );
-
-      if (response.status === 200) {
-        // Store registration data for OTP step
-        store.setRegistrationData(
-          formData.email,
-          formData.firstName,
-          formData.lastName,
-        );
+      if (response.success) {
+        setSubmittedEmail(values.email);
         setStep("otp");
+        resetField("otp");
+        clearErrors("otp");
+        setFocus("otp");
       }
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage || "Failed to register. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setError("email", {
+        type: "manual",
+        message:
+          getErrorMessage(err) || "Failed to initiate login. Please try again.",
+      });
     }
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+  const handleOtpSubmit = async (values: RegisterFormValues) => {
     try {
-      const verifyData: VerifyOtpRequest = {
-        email: formData.email,
-        code: formData.otp,
-      };
+      const response = await VerifyOtp(values);
 
-      const response = await axios.post<VerifyOtpResponse>(
-        "/auth/verify-otp",
-        verifyData,
-      );
-
-      if (response.status === 200) {
+      if (response.success) {
         const {
-          user,
           accessToken,
+          user,
           accessTokenExpiresAt,
           refreshTokenExpiresAt,
           session,
-        } = response.data;
+        } = response;
 
-        // Store device ID for reference (tokens are in httpOnly cookies)
         storeDeviceId(session.deviceId);
 
-        // Sign in with NextAuth using credentials provider
-        // Note: refreshToken and sessionId are in httpOnly cookies, not in response body
         const result = await signIn("credentials", {
           accessToken,
-          refreshToken: "", // Empty since it's in httpOnly cookie
+          refreshToken: "",
           user: JSON.stringify(user),
           accessTokenExpiresAt,
           refreshTokenExpiresAt,
@@ -107,235 +106,300 @@ export default function RegisterPage() {
         });
 
         if (result?.ok) {
-          // Store user in auth store
-          store.setUser(user);
-          // Reset auth flow
-          store.resetAuthFlow();
-          // Redirect to dashboard
           router.push("/dashboard");
-        } else {
-          setError("Failed to sign in. Please try again.");
+          return;
         }
+
+        setError("otp", {
+          type: "manual",
+          message: "Failed to sign in. Please try again.",
+        });
       }
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage || "Failed to verify OTP. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setError("otp", {
+        type: "manual",
+        message:
+          getErrorMessage(err) || "Failed to verify OTP. Please try again.",
+      });
     }
   };
 
   const handleResendOtp = async () => {
-    setIsLoading(true);
-    setError(null);
+    if (!submittedEmail.trim()) {
+      setError("email", {
+        type: "manual",
+        message: "Please enter your email first.",
+      });
+      return;
+    }
 
     try {
-      const response = await axios.post<OtpResendResponse>("/auth/resend-otp", {
-        email: formData.email,
-      });
+      setIsResending(true);
+      const response = await ResendOtp({ email: submittedEmail.trim() });
 
-      if (response.status === 200) {
-        setOtpExpiresIn(response.data.expiresIn);
-        setError(null);
-        // Show success message
-        alert(
-          `OTP resent to ${response.data.email}. Expires in ${response.data.expiresIn}`,
-        );
+      if (response.success) {
+        setOtpExpiresIn(response.expiresIn);
       }
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage || "Failed to resend OTP. Please try again.");
+      setError("otp", {
+        type: "manual",
+        message:
+          getErrorMessage(err) || "Failed to resend OTP. Please try again.",
+      });
     } finally {
-      setIsLoading(false);
+      setIsResending(false);
     }
   };
 
-  const handleBackToRegister = () => {
+  const handleBackToLogin = () => {
     setStep("register");
-    setFormData({ ...formData, otp: "" });
-    setError(null);
+    resetField("otp");
+    clearErrors("otp");
+    setOtpExpiresIn(null);
+    setFocus("email");
   };
 
+  const isOtpStep = step === "otp";
+  const isEmailStep = step === "register";
+
+  const onSubmit = handleSubmit(
+    isOtpStep ? handleOtpSubmit : handleRegisterSubmit,
+  );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            {step === "register" ? "Create your account" : "Verify your email"}
-          </h2>
-        </div>
-
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <p className="text-sm font-medium text-red-800">{error}</p>
-          </div>
+    <main className="flex min-h-screen items-center justify-center bg-[#020617]">
+      <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center flex-row-reverse gap-8 lg:gap-10">
+        <div className="absolute inset-y-0 right-0 z-0 w-9/12 rounded-2xl bg-[#0F172A]" />
+        {isEmailStep && (
+          <StepImage
+            width={2000}
+            height={2000}
+            src={"/auth/register.png"}
+            alt="Kanban Board"
+            className="max-w-3/5 z-10"
+          />
         )}
+        {isOtpStep && (
+          <StepImage
+            width={2000}
+            height={2000}
+            src={"/auth/enter-otp.png"}
+            alt="Kanban Board"
+            className="max-w-3/5 z-10"
+          />
+        )}
+        <>
+          <FormContainer className="relative z-10">
+            <FormHeader
+              title={
+                isOtpStep ? <>Check your Email</> : <>Create Your Account</>
+              }
+              subtitle={
+                isOtpStep ? <>Enter the 6-digit code we sent to you</> : null
+              }
+            />
+            <FormBody>
+              <form onSubmit={onSubmit} className="w-full">
+                <FieldGroup className="gap-6 text-white">
+                  {isEmailStep && (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <Controller
+                          name="firstName"
+                          control={control}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                              <FieldLabel htmlFor="firstName">
+                                First Name :
+                              </FieldLabel>
+                              <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                                <InputGroupAddon align="inline-start">
+                                  <Mail className="size-4" />
+                                </InputGroupAddon>
+                                <InputGroupInput
+                                  {...field}
+                                  id="firstName"
+                                  type="firstName"
+                                  placeholder="First Name"
+                                  autoComplete="First Name"
+                                  aria-invalid={fieldState.invalid}
+                                  className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                                />
+                              </InputGroup>
+                            </Field>
+                          )}
+                        />
+                        <Controller
+                          name="lastName"
+                          control={control}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                              <FieldLabel htmlFor="lastName">
+                                Last Name :
+                              </FieldLabel>
+                              <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                                <InputGroupAddon align="inline-start">
+                                  <Mail className="size-4" />
+                                </InputGroupAddon>
+                                <InputGroupInput
+                                  {...field}
+                                  id="lastName"
+                                  type="lastName"
+                                  placeholder="Last Name"
+                                  autoComplete="Last Name"
+                                  aria-invalid={fieldState.invalid}
+                                  className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                                />
+                              </InputGroup>
+                            </Field>
+                          )}
+                        />
+                      </div>
+                      <Controller
+                        name="email"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="email">Email :</FieldLabel>
+                            <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                              <InputGroupAddon align="inline-start">
+                                <Mail className="size-4" />
+                              </InputGroupAddon>
+                              <InputGroupInput
+                                {...field}
+                                id="email"
+                                type="email"
+                                placeholder="Ente your email"
+                                autoComplete="email"
+                                readOnly={isOtpStep}
+                                aria-invalid={fieldState.invalid}
+                                className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                              />
+                            </InputGroup>
+                            <FieldError errors={[fieldState.error]} />
+                            {isOtpStep && (
+                              <FieldDescription>
+                                This address is tied to the verification code.
+                              </FieldDescription>
+                            )}
+                          </Field>
+                        )}
+                      />
+                    </>
+                  )}
 
-        <form
-          onSubmit={
-            step === "register" ? handleRegisterSubmit : handleOtpSubmit
-          }
-          className="space-y-6"
-        >
-          {step === "register" ? (
-            <>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
+                  {isOtpStep && (
+                    <Controller
+                      name="otp"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="otp">Enter Code :</FieldLabel>
+                          <div className="flex items-center gap-3">
+                            <InputOTP
+                              maxLength={6}
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              disabled={field.disabled}
+                              containerClassName="w-full"
+                            >
+                              <InputOTPGroup className="w-full justify-between gap-1">
+                                <InputOTPSlot index={0} />
+                                <InputOTPSlot index={1} />
+                                <InputOTPSlot index={2} />
+                                <InputOTPSlot index={3} />
+                                <InputOTPSlot index={4} />
+                                <InputOTPSlot index={5} />
+                              </InputOTPGroup>
+                            </InputOTP>
+                          </div>
+                          <FieldError errors={[fieldState.error]} />
+                          {otpExpiresIn && (
+                            <FieldDescription>
+                              The latest code expires in {otpExpiresIn}.
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      )}
+                    />
+                  )}
 
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  First name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  autoComplete="given-name"
-                  required
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
+                  <div className="flex flex-col gap-3 pt-2">
+                    {isOtpStep ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          type="button"
+                          onClick={handleBackToLogin}
+                          disabled={isSubmitting || isResending}
+                          variant="outline"
+                          size="lg"
+                          className="w-full cursor-pointer border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
+                        >
+                          <ChevronLeft className="size-4" />
+                          Use Different Email
+                        </Button>
 
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Last name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  autoComplete="family-name"
-                  required
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lastName: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isLoading ? "Creating account..." : "Create account"}
-              </button>
-            </>
-          ) : (
-            <>
-              <div>
-                <label
-                  htmlFor="email-display"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email
-                </label>
-                <input
-                  id="email-display"
-                  type="email"
-                  disabled
-                  value={formData.email}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-600 shadow-sm sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="otp"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Enter 6-digit OTP
-                </label>
-                <input
-                  id="otp"
-                  name="otp"
-                  type="text"
-                  maxLength={6}
-                  required
-                  value={formData.otp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, otp: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                  placeholder="000000"
-                />
-              </div>
-
-              {otpExpiresIn && (
-                <p className="text-sm text-gray-600">
-                  OTP expires in: {otpExpiresIn}
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting || isResending}
+                          size="lg"
+                          className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
+                        >
+                          {isSubmitting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Verify code"
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || isResending}
+                        size="lg"
+                        className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Send Code"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </FieldGroup>
+              </form>
+            </FormBody>
+            <FormFooter step={isOtpStep ? 2 : 1} totalSteps={2}>
+              {isEmailStep && (
+                <p className="text-center text-xs text-[#64748B]">
+                  Have an account ?{" "}
+                  <Link href="/auth/login" className="text-blue-400 font-bold">
+                    Sign In
+                  </Link>
                 </p>
               )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isLoading ? "Verifying..." : "Verify OTP"}
-              </button>
-
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={handleBackToRegister}
-                  disabled={isLoading}
-                  className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={isLoading}
-                  className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Resend OTP
-                </button>
-              </div>
-            </>
-          )}
-        </form>
-
-        <p className="text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <a
-            href="/auth/login"
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Sign in
-          </a>
-        </p>
+              {isOtpStep && (
+                <p className="text-center text-xs text-[#64748B]">
+                  Didn&apos;t receive a code ?{" "}
+                  <Button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={
+                      isSubmitting || isResending || !submittedEmail.trim()
+                    }
+                    className="text-blue-400 font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0 p-0 text-xs cursor-pointer"
+                  >
+                    Resend code in
+                  </Button>
+                </p>
+              )}
+            </FormFooter>
+          </FormContainer>
+        </>
       </div>
-    </div>
+    </main>
   );
 }

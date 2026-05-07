@@ -13,6 +13,7 @@ const FormContainer = ({ className, children }: FormContainerProps) => {
           src="/logo.svg"
           alt="ManeJo Logo"
           className="w-64"
+          loading="eager"
         />
       </div>
       {children}
