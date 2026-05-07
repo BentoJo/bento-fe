@@ -1,30 +1,42 @@
 import { v4 as uuidv4 } from "uuid";
 import type { DeviceInfo } from "@/types/api/client-context";
 
-const DEVICE_FINGERPRINT_STORAGE_KEY =
-  process.env.DEVICE_FINGERPRINT_STORAGE_KEY;
-const DEVICE_NAME_STORAGE_KEY = process.env.DEVICE_NAME_STORAGE_KEY;
+function getEnv(key: string): string {
+  const value = process.env[key];
 
-if (!DEVICE_FINGERPRINT_STORAGE_KEY || !DEVICE_NAME_STORAGE_KEY) {
-  throw new Error(
-    "Device storage keys are not defined in environment variables",
-  );
+  if (!value) {
+    throw new Error(`Environment variable ${key} is not defined`);
+  }
+
+  return value!;
+}
+
+function getDeviceFingerprintStorageKey(): string {
+  return getEnv("NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY");
+}
+
+function getDeviceNameStorageKey(): string {
+  return getEnv("NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY");
+}
+
+function isBrowser(): boolean {
+  return typeof window !== "undefined";
 }
 
 export function getDeviceFingerprint(): string {
   try {
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem(DEVICE_FINGERPRINT_STORAGE_KEY!);
-      if (stored) {
-        return stored;
-      }
+    if (isBrowser() && typeof localStorage !== "undefined") {
+      const storageKey = getDeviceFingerprintStorageKey();
+      const stored = localStorage.getItem(storageKey);
+
+      if (stored) return stored;
 
       const fingerprint = generateFingerprint();
-      localStorage.setItem(DEVICE_FINGERPRINT_STORAGE_KEY!, fingerprint);
+      localStorage.setItem(storageKey, fingerprint);
       return fingerprint;
     }
-  } catch (e) {
-    console.warn("Failed to access localStorage for device fingerprint:", e);
+  } catch (error) {
+    console.warn("Failed to access localStorage for fingerprint:", error);
   }
 
   return generateFingerprint();
@@ -32,56 +44,66 @@ export function getDeviceFingerprint(): string {
 
 function generateFingerprint(): string {
   try {
+    if (!isBrowser()) return uuidv4();
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+
     if (ctx) {
       ctx.textBaseline = "top";
       ctx.font = "14px Arial";
-      ctx.textBaseline = "alphabetic";
+
       ctx.fillStyle = "#f60";
       ctx.fillRect(125, 1, 62, 20);
+
       ctx.fillStyle = "#069";
       ctx.fillText("Browser Fingerprint", 2, 15);
+
       ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
       ctx.fillText("Browser Fingerprint", 4, 17);
     }
+
     const canvasFingerprint = canvas.toDataURL();
 
     const navigatorInfo = `${navigator.language}-${navigator.platform}-${navigator.hardwareConcurrency}`;
 
     let hash = 0;
     const str = canvasFingerprint + navigatorInfo;
+
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash;
+      hash |= 0;
     }
+
     return Math.abs(hash).toString(16);
-  } catch (e) {
+  } catch {
     return uuidv4();
   }
 }
 
 export function getDeviceName(): string {
   try {
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem(DEVICE_NAME_STORAGE_KEY!);
-      if (stored) {
-        return stored;
-      }
+    if (isBrowser() && typeof localStorage !== "undefined") {
+      const storageKey = getDeviceNameStorageKey();
+      const stored = localStorage.getItem(storageKey);
+
+      if (stored) return stored;
 
       const deviceName = generateDeviceName();
-      localStorage.setItem(DEVICE_NAME_STORAGE_KEY!, deviceName);
+      localStorage.setItem(storageKey, deviceName);
       return deviceName;
     }
-  } catch (e) {
-    console.warn("Failed to access localStorage for device name:", e);
+  } catch (error) {
+    console.warn("Failed to access localStorage for device name:", error);
   }
 
   return generateDeviceName();
 }
 
 function generateDeviceName(): string {
+  if (!isBrowser()) return "Generic Device";
+
   const browserNames: Record<string, string> = {
     Chrome: "Chrome Device",
     Firefox: "Firefox Device",
@@ -90,6 +112,7 @@ function generateDeviceName(): string {
   };
 
   const userAgent = navigator.userAgent;
+
   for (const [browser, name] of Object.entries(browserNames)) {
     if (userAgent.includes(browser)) {
       return name;
@@ -100,13 +123,13 @@ function generateDeviceName(): string {
 }
 
 export function getDeviceType(): "mobile" | "tablet" | "desktop" {
-  if (typeof window === "undefined") {
-    return "desktop";
-  }
+  if (!isBrowser()) return "desktop";
 
   const userAgent = navigator.userAgent.toLowerCase();
+
   const isMobile =
     /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+
   const isTablet = /ipad|android(?!.*mobile)|xoom/i.test(userAgent);
 
   if (isMobile) return "mobile";
@@ -119,9 +142,7 @@ export function getDeviceType(): "mobile" | "tablet" | "desktop" {
 }
 
 export function getDevicePlatform(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (!isBrowser()) return null;
 
   const platforms: Record<string, string> = {
     Mac: "macOS",
@@ -142,30 +163,21 @@ export function getDevicePlatform(): string | null {
 }
 
 export function getHardwareConcurrency(): number | null {
-  if (typeof navigator === "undefined" || !navigator.hardwareConcurrency) {
-    return null;
-  }
-
+  if (!isBrowser() || !navigator.hardwareConcurrency) return null;
   return navigator.hardwareConcurrency;
 }
 
 export function getTimezone(): string | null {
   try {
-    if (typeof Intl === "undefined") {
-      return null;
-    }
-
+    if (typeof Intl === "undefined") return null;
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
 export function getLanguage(): string | null {
-  if (typeof navigator === "undefined") {
-    return null;
-  }
-
+  if (!isBrowser()) return null;
   return navigator.language || null;
 }
 
@@ -178,6 +190,6 @@ export function collectDeviceInfo(): DeviceInfo {
     hardwareConcurrency: getHardwareConcurrency(),
     timezone: getTimezone(),
     language: getLanguage(),
-    token: null, // Device token is managed by backend and sent via httpOnly cookie
+    token: null, // managed by backend
   };
 }

@@ -17,7 +17,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="relative mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
+      <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
         <div className="absolute inset-y-0 left-0 z-0 w-4/6 rounded-2xl bg-[#0F172A]" />
         <Image
           width={2000}
@@ -46,7 +46,7 @@ export default async function Home() {
                 <Link href="/auth/login">
                   <Button
                     size="lg"
-                    className="bg-blue-500 cursor-pointer hover:bg-blue-500/85 px-12 mt-8"
+                    className="bg-blue-500 cursor-pointer hover:bg-blue-500/85 px-12"
                   >
                     Continue With Email
                   </Button>
