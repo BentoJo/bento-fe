@@ -7,7 +7,7 @@ export async function refreshAccessToken(): Promise<AuthTokens> {
     throw new Error("API endpoint is not defined in environment variables.");
   }
 
-  const response = await fetch(`${endpoint}/auth/refresh-token`, {
+  const response = await fetch(`${endpoint}/v1/auth/refresh-token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

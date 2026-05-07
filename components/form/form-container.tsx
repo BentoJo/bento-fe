@@ -4,7 +4,7 @@ import { FormContainerProps } from "@/types/auth/form";
 const FormContainer = ({ className, children }: FormContainerProps) => {
   return (
     <div
-      className={`backdrop-blur-lg bg-[#020617]/20 border-2 border-[#1E293B]/20 rounded-4xl shadow-lg p-8 lg:p-10 lg:py-16 flex w-full max-w-[480px] flex-col items-stretch justify-center ${className}`}
+      className={`backdrop-blur-lg bg-[#020617]/20 border-2 border-[#1E293B]/20 rounded-4xl shadow-lg p-8 lg:p-10 lg:py-16 flex w-full max-w-120 flex-col items-stretch justify-center ${className}`}
     >
       <div className="mb-8 flex items-center justify-center">
         <Image

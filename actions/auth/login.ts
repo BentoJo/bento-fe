@@ -17,7 +17,7 @@ export async function Login(values: LoginRequest): Promise<LoginResponse> {
 
     const { email } = validatedData.data;
 
-    const response = await axios.post<LoginResponse>("/auth/login", {
+    const response = await axios.post<LoginResponse>("/v1/auth/login", {
       email,
     });
 

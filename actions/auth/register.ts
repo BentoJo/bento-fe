@@ -20,7 +20,7 @@ export async function Register(
 
     const { email, firstName, lastName } = validatedData.data;
 
-    const response = await axios.post<RegisterResponse>("/auth/register", {
+    const response = await axios.post<RegisterResponse>("/v1/auth/register", {
       email,
       firstName,
       lastName,

@@ -31,7 +31,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { ArrowLeft, KeyRound, Loader2, Mail, RefreshCw } from "lucide-react";
+import { ChevronLeft, Loader2, Mail } from "lucide-react";
 import { LoginFormValues } from "@/types/auth/login";
 import Link from "next/link";
 
@@ -157,6 +157,7 @@ export default function LoginPage() {
   };
 
   const isOtpStep = step === "otp";
+  const isEmailStep = step === "login";
 
   const onSubmit = handleSubmit(
     isOtpStep ? handleOtpSubmit : handleLoginSubmit,
@@ -166,13 +167,24 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-[#020617]">
       <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
         <div className="absolute inset-y-0 left-0 z-0 w-4/6 rounded-2xl bg-[#0F172A]" />
-        <Image
-          width={2000}
-          height={2000}
-          src={"/auth/login.png"}
-          alt="Kanban Board"
-          className="max-w-1/2 z-10"
-        />
+        {isEmailStep && (
+          <Image
+            width={2000}
+            height={2000}
+            src={"/auth/login.png"}
+            alt="Kanban Board"
+            className="max-w-1/2 z-10"
+          />
+        )}
+        {isOtpStep && (
+          <Image
+            width={2000}
+            height={2000}
+            src={"/auth/enter-otp.png"}
+            alt="Kanban Board"
+            className="max-w-1/2 z-10"
+          />
+        )}
         <>
           <FormContainer className="relative z-10">
             <FormHeader
@@ -196,35 +208,38 @@ export default function LoginPage() {
             <FormBody>
               <form onSubmit={onSubmit} className="w-full">
                 <FieldGroup className="gap-6 text-white">
-                  <Controller
-                    name="email"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="email">Email :</FieldLabel>
-                        <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
-                          <InputGroupAddon align="inline-start">
-                            <Mail className="size-4" />
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            {...field}
-                            id="email"
-                            type="email"
-                            placeholder="Ente your email"
-                            autoComplete="email"
-                            readOnly={isOtpStep}
-                            aria-invalid={fieldState.invalid}
-                          />
-                        </InputGroup>
-                        <FieldError errors={[fieldState.error]} />
-                        {isOtpStep && (
-                          <FieldDescription>
-                            This address is tied to the verification code.
-                          </FieldDescription>
-                        )}
-                      </Field>
-                    )}
-                  />
+                  {isEmailStep && (
+                    <Controller
+                      name="email"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="email">Email :</FieldLabel>
+                          <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                            <InputGroupAddon align="inline-start">
+                              <Mail className="size-4" />
+                            </InputGroupAddon>
+                            <InputGroupInput
+                              {...field}
+                              id="email"
+                              type="email"
+                              placeholder="Ente your email"
+                              autoComplete="email"
+                              readOnly={isOtpStep}
+                              aria-invalid={fieldState.invalid}
+                              className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                            />
+                          </InputGroup>
+                          <FieldError errors={[fieldState.error]} />
+                          {isOtpStep && (
+                            <FieldDescription>
+                              This address is tied to the verification code.
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      )}
+                    />
+                  )}
 
                   {isOtpStep && (
                     <Controller
@@ -232,11 +247,8 @@ export default function LoginPage() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor="otp">
-                            Verification code
-                          </FieldLabel>
+                          <FieldLabel htmlFor="otp">Enter Code :</FieldLabel>
                           <div className="flex items-center gap-3">
-                            <KeyRound className="size-4 text-[#94A3B8]" />
                             <InputOTP
                               maxLength={6}
                               value={field.value}
@@ -246,7 +258,7 @@ export default function LoginPage() {
                               disabled={field.disabled}
                               containerClassName="w-full"
                             >
-                              <InputOTPGroup className="w-full justify-between gap-2">
+                              <InputOTPGroup className="w-full justify-between gap-1">
                                 <InputOTPSlot index={0} />
                                 <InputOTPSlot index={1} />
                                 <InputOTPSlot index={2} />
@@ -268,22 +280,7 @@ export default function LoginPage() {
                   )}
 
                   <div className="flex flex-col gap-3 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting || isResending}
-                      size="lg"
-                      className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
-                    >
-                      {isSubmitting ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : isOtpStep ? (
-                        "Verify code"
-                      ) : (
-                        "Continue with email"
-                      )}
-                    </Button>
-
-                    {isOtpStep && (
+                    {isOtpStep ? (
                       <div className="grid grid-cols-2 gap-3">
                         <Button
                           type="button"
@@ -291,44 +288,70 @@ export default function LoginPage() {
                           disabled={isSubmitting || isResending}
                           variant="outline"
                           size="lg"
-                          className="w-full border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
+                          className="w-full cursor-pointer border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
                         >
-                          <ArrowLeft className="size-4" />
-                          Back
+                          <ChevronLeft className="size-4" />
+                          Use Different Email
                         </Button>
 
                         <Button
-                          type="button"
-                          onClick={handleResendOtp}
-                          disabled={
-                            isSubmitting ||
-                            isResending ||
-                            !submittedEmail.trim()
-                          }
-                          variant="outline"
+                          type="submit"
+                          disabled={isSubmitting || isResending}
                           size="lg"
-                          className="w-full border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
+                          className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
                         >
-                          {isResending ? (
+                          {isSubmitting ? (
                             <Loader2 className="size-4 animate-spin" />
                           ) : (
-                            <RefreshCw className="size-4" />
+                            "Verify code"
                           )}
-                          Resend code
                         </Button>
                       </div>
+                    ) : (
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || isResending}
+                        size="lg"
+                        className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Continue with email"
+                        )}
+                      </Button>
                     )}
                   </div>
                 </FieldGroup>
               </form>
             </FormBody>
             <FormFooter step={isOtpStep ? 2 : 1} totalSteps={2}>
-              <p className="text-center text-xs text-[#64748B]">
-                Don&apos;t have an account ?{" "}
-                <Link href="/auth/register" className="text-blue-400 font-bold">
-                  Sign Up
-                </Link>
-              </p>
+              {isEmailStep && (
+                <p className="text-center text-xs text-[#64748B]">
+                  Don&apos;t have an account ?{" "}
+                  <Link
+                    href="/auth/register"
+                    className="text-blue-400 font-bold"
+                  >
+                    Sign Up
+                  </Link>
+                </p>
+              )}
+              {isOtpStep && (
+                <p className="text-center text-xs text-[#64748B]">
+                  Didn&apos;t receive a code ?{" "}
+                  <Button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={
+                      isSubmitting || isResending || !submittedEmail.trim()
+                    }
+                    className="text-blue-400 font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0 p-0 text-xs cursor-pointer"
+                  >
+                    Resend code in
+                  </Button>
+                </p>
+              )}
             </FormFooter>
           </FormContainer>
         </>

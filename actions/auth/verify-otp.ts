@@ -18,7 +18,7 @@ export async function VerifyOtp(
 
     const { email, otp } = validatedData.data;
 
-    const response = await axios.post<VerifyOtpResponse>("/auth/verify-otp", {
+    const response = await axios.post<VerifyOtpResponse>("/v1/auth/verify-otp", {
       email,
       code: otp,
     });

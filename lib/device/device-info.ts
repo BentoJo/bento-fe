@@ -1,42 +1,58 @@
 import { v4 as uuidv4 } from "uuid";
 import type { DeviceInfo } from "@/types/api/client-context";
 
-function getEnv(key: string): string {
-  const value = process.env[key];
+const DEVICE_FINGERPRINT_STORAGE_KEY =
+  process.env.NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY;
 
-  if (!value) {
-    throw new Error(`Environment variable ${key} is not defined`);
-  }
+const DEVICE_NAME_STORAGE_KEY =
+  process.env.NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY;
 
-  return value!;
+if (!DEVICE_FINGERPRINT_STORAGE_KEY) {
+  console.log(DEVICE_FINGERPRINT_STORAGE_KEY);
+  throw new Error(
+    "NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY is not defined"
+  );
 }
 
-function getDeviceFingerprintStorageKey(): string {
-  return getEnv("NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY");
-}
-
-function getDeviceNameStorageKey(): string {
-  return getEnv("NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY");
+if (!DEVICE_NAME_STORAGE_KEY) {
+  console.log(DEVICE_NAME_STORAGE_KEY);
+  throw new Error("NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY is not defined");
 }
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+function getDeviceFingerprintStorageKey(): string {
+  return DEVICE_FINGERPRINT_STORAGE_KEY!;
+}
+
+function getDeviceNameStorageKey(): string {
+  return DEVICE_NAME_STORAGE_KEY!;
+}
+
 export function getDeviceFingerprint(): string {
   try {
     if (isBrowser() && typeof localStorage !== "undefined") {
       const storageKey = getDeviceFingerprintStorageKey();
+
       const stored = localStorage.getItem(storageKey);
 
-      if (stored) return stored;
+      if (stored) {
+        return stored;
+      }
 
       const fingerprint = generateFingerprint();
+
       localStorage.setItem(storageKey, fingerprint);
+
       return fingerprint;
     }
   } catch (error) {
-    console.warn("Failed to access localStorage for fingerprint:", error);
+    console.warn(
+      "Failed to access localStorage for fingerprint:",
+      error
+    );
   }
 
   return generateFingerprint();
@@ -44,9 +60,12 @@ export function getDeviceFingerprint(): string {
 
 function generateFingerprint(): string {
   try {
-    if (!isBrowser()) return uuidv4();
+    if (!isBrowser()) {
+      return uuidv4();
+    }
 
     const canvas = document.createElement("canvas");
+
     const ctx = canvas.getContext("2d");
 
     if (ctx) {
@@ -68,11 +87,14 @@ function generateFingerprint(): string {
     const navigatorInfo = `${navigator.language}-${navigator.platform}-${navigator.hardwareConcurrency}`;
 
     let hash = 0;
+
     const str = canvasFingerprint + navigatorInfo;
 
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
+
       hash = (hash << 5) - hash + char;
+
       hash |= 0;
     }
 
@@ -86,23 +108,33 @@ export function getDeviceName(): string {
   try {
     if (isBrowser() && typeof localStorage !== "undefined") {
       const storageKey = getDeviceNameStorageKey();
+
       const stored = localStorage.getItem(storageKey);
 
-      if (stored) return stored;
+      if (stored) {
+        return stored;
+      }
 
       const deviceName = generateDeviceName();
+
       localStorage.setItem(storageKey, deviceName);
+
       return deviceName;
     }
   } catch (error) {
-    console.warn("Failed to access localStorage for device name:", error);
+    console.warn(
+      "Failed to access localStorage for device name:",
+      error
+    );
   }
 
   return generateDeviceName();
 }
 
 function generateDeviceName(): string {
-  if (!isBrowser()) return "Generic Device";
+  if (!isBrowser()) {
+    return "Generic Device";
+  }
 
   const browserNames: Record<string, string> = {
     Chrome: "Chrome Device",
@@ -123,26 +155,35 @@ function generateDeviceName(): string {
 }
 
 export function getDeviceType(): "mobile" | "tablet" | "desktop" {
-  if (!isBrowser()) return "desktop";
+  if (!isBrowser()) {
+    return "desktop";
+  }
 
   const userAgent = navigator.userAgent.toLowerCase();
 
   const isMobile =
-    /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(
+      userAgent
+    );
 
-  const isTablet = /ipad|android(?!.*mobile)|xoom/i.test(userAgent);
+  const isTablet =
+    /ipad|android(?!.*mobile)|xoom/i.test(userAgent);
 
   if (isMobile) return "mobile";
+
   if (isTablet) return "tablet";
 
   if (window.innerWidth <= 640) return "mobile";
+
   if (window.innerWidth <= 1024) return "tablet";
 
   return "desktop";
 }
 
 export function getDevicePlatform(): string | null {
-  if (!isBrowser()) return null;
+  if (!isBrowser()) {
+    return null;
+  }
 
   const platforms: Record<string, string> = {
     Mac: "macOS",
@@ -163,21 +204,32 @@ export function getDevicePlatform(): string | null {
 }
 
 export function getHardwareConcurrency(): number | null {
-  if (!isBrowser() || !navigator.hardwareConcurrency) return null;
+  if (!isBrowser() || !navigator.hardwareConcurrency) {
+    return null;
+  }
+
   return navigator.hardwareConcurrency;
 }
 
 export function getTimezone(): string | null {
   try {
-    if (typeof Intl === "undefined") return null;
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (typeof Intl === "undefined") {
+      return null;
+    }
+
+    return Intl.DateTimeFormat()
+      .resolvedOptions()
+      .timeZone;
   } catch {
     return null;
   }
 }
 
 export function getLanguage(): string | null {
-  if (!isBrowser()) return null;
+  if (!isBrowser()) {
+    return null;
+  }
+
   return navigator.language || null;
 }
 
@@ -190,6 +242,6 @@ export function collectDeviceInfo(): DeviceInfo {
     hardwareConcurrency: getHardwareConcurrency(),
     timezone: getTimezone(),
     language: getLanguage(),
-    token: null, // managed by backend
+    token: null,
   };
 }
