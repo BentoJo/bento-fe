@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { getErrorMessage } from "@/types/api/errors";
@@ -58,6 +58,7 @@ export default function LoginPage() {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpExpiresIn, setOtpExpiresIn] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
     try {
@@ -137,6 +138,7 @@ export default function LoginPage() {
 
       if (response.success) {
         setOtpExpiresIn(response.expiresIn);
+        startResendTimer(60);
       }
     } catch (err) {
       setError("otp", {
@@ -163,6 +165,39 @@ export default function LoginPage() {
   const onSubmit = handleSubmit(
     isOtpStep ? handleOtpSubmit : handleLoginSubmit,
   );
+
+  const startResendTimer = (duration = 60) => {
+    // clear previous timer
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    let remaining = duration;
+
+    setOtpExpiresIn(formatTime(remaining));
+
+    intervalRef.current = setInterval(() => {
+      remaining -= 1;
+
+      if (remaining <= 0) {
+        clearInterval(intervalRef.current!);
+        intervalRef.current = null;
+        setOtpExpiresIn(null);
+        return;
+      }
+
+      setOtpExpiresIn(formatTime(remaining));
+    }, 1000);
+  };
+
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#020617]">
@@ -345,11 +380,15 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={
-                      isSubmitting || isResending || !submittedEmail.trim()
+                      isSubmitting ||
+                      isResending ||
+                      !submittedEmail.trim() ||
+                      !!otpExpiresIn
                     }
                     className="text-blue-400 font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0 p-0 text-xs cursor-pointer"
                   >
-                    Resend code in
+                    Resend code{" "}
+                    {otpExpiresIn ? `in ${otpExpiresIn}` : "now"}{" "}
                   </Button>
                 </p>
               )}
