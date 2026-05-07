@@ -30,6 +30,7 @@ export interface OtpResendResponse {
   method: string;
   email: string;
   expiresIn: string;
+  resendAfter?: number;
   success: boolean;
   message: string;
 }

@@ -7,7 +7,6 @@ import { storeDeviceId } from "@/lib/auth/session";
 import { Login } from "@/actions/auth/login";
 import { VerifyOtp } from "@/actions/auth/verify-otp";
 import { ResendOtp } from "@/actions/auth/resend-otp";
-import Image from "next/image";
 import FormContainer from "@/components/form/form-container";
 import { FormHeader } from "@/components/form/form-header";
 import { FormBody } from "@/components/form/form-body";
@@ -59,6 +58,7 @@ export default function LoginPage() {
   const [otpExpiresIn, setOtpExpiresIn] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
     try {
@@ -136,9 +136,9 @@ export default function LoginPage() {
       setIsResending(true);
       const response = await ResendOtp({ email: submittedEmail.trim() });
 
-      if (response.success) {
+        if (response.success) {
+        startResendTimer(response.resendAfter ?? 60);
         setOtpExpiresIn(response.expiresIn);
-        startResendTimer(60);
       }
     } catch (err) {
       setError("otp", {
@@ -156,6 +156,7 @@ export default function LoginPage() {
     resetField("otp");
     clearErrors("otp");
     setOtpExpiresIn(null);
+    setRemaining(null);
     setFocus("email");
   };
 
@@ -166,31 +167,31 @@ export default function LoginPage() {
     isOtpStep ? handleOtpSubmit : handleLoginSubmit,
   );
 
-  const startResendTimer = (duration = 60) => {
-    // clear previous timer
+  const startResendTimer = (duration: number) => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
-    let remaining = duration;
-
-    setOtpExpiresIn(formatTime(remaining));
+    setRemaining(duration);
 
     intervalRef.current = setInterval(() => {
-      remaining -= 1;
+      setRemaining((prev) => {
+        if (!prev || prev <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          return null;
+        }
 
-      if (remaining <= 0) {
-        clearInterval(intervalRef.current!);
-        intervalRef.current = null;
-        setOtpExpiresIn(null);
-        return;
-      }
-
-      setOtpExpiresIn(formatTime(remaining));
+        return prev - 1;
+      });
     }, 1000);
   };
 
-  const formatTime = (totalSeconds: number) => {
+  const formatTime = (totalSeconds: number | null) => {
+    if (!totalSeconds && totalSeconds !== 0) return null;
+
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
@@ -198,6 +199,7 @@ export default function LoginPage() {
       .toString()
       .padStart(2, "0")}`;
   };
+
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#020617]">
@@ -383,12 +385,12 @@ export default function LoginPage() {
                       isSubmitting ||
                       isResending ||
                       !submittedEmail.trim() ||
-                      !!otpExpiresIn
+                      remaining !== null
                     }
-                    className="text-blue-400 font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0 p-0 text-xs cursor-pointer"
+                    className="text-blue-400 font-bold bg-transparent border-0 p-0 text-xs"
                   >
                     Resend code{" "}
-                    {otpExpiresIn ? `in ${otpExpiresIn}` : "now"}{" "}
+                    {remaining !== null ? `in ${formatTime(remaining)}` : "now"}
                   </Button>
                 </p>
               )}

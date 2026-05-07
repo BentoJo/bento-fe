@@ -1,12 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { getErrorMessage } from "@/types/api/errors";
 import { storeDeviceId } from "@/lib/auth/session";
 import { VerifyOtp } from "@/actions/auth/verify-otp";
 import { ResendOtp } from "@/actions/auth/resend-otp";
-import Image from "next/image";
 import FormContainer from "@/components/form/form-container";
 import { FormHeader } from "@/components/form/form-header";
 import { FormBody } from "@/components/form/form-body";
@@ -60,6 +59,8 @@ export default function RegisterPage() {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpExpiresIn, setOtpExpiresIn] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleRegisterSubmit = async (values: RegisterFormValues) => {
     try {
@@ -138,6 +139,7 @@ export default function RegisterPage() {
       const response = await ResendOtp({ email: submittedEmail.trim() });
 
       if (response.success) {
+        startResendTimer(response.resendAfter ?? 60);
         setOtpExpiresIn(response.expiresIn);
       }
     } catch (err) {
@@ -156,6 +158,7 @@ export default function RegisterPage() {
     resetField("otp");
     clearErrors("otp");
     setOtpExpiresIn(null);
+    setRemaining(null);
     setFocus("email");
   };
 
@@ -165,6 +168,39 @@ export default function RegisterPage() {
   const onSubmit = handleSubmit(
     isOtpStep ? handleOtpSubmit : handleRegisterSubmit,
   );
+
+  const startResendTimer = (duration: number) => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    setRemaining(duration);
+
+    intervalRef.current = setInterval(() => {
+      setRemaining((prev) => {
+        if (!prev || prev <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          return null;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const formatTime = (totalSeconds: number | null) => {
+    if (!totalSeconds && totalSeconds !== 0) return null;
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#020617]">
@@ -388,11 +424,15 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={
-                      isSubmitting || isResending || !submittedEmail.trim()
+                      isSubmitting ||
+                      isResending ||
+                      !submittedEmail.trim() ||
+                      remaining !== null
                     }
-                    className="text-blue-400 font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0 p-0 text-xs cursor-pointer"
+                    className="text-blue-400 font-bold bg-transparent border-0 p-0 text-xs"
                   >
-                    Resend code in
+                    Resend code{" "}
+                    {remaining !== null ? `in ${formatTime(remaining)}` : "now"}
                   </Button>
                 </p>
               )}

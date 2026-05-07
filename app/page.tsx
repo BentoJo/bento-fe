@@ -1,5 +1,4 @@
 import { getAuthSession } from "@/lib/auth/server";
-import Image from "next/image";
 import FormContainer from "@/components/form/form-container";
 import { FormHeader } from "@/components/form/form-header";
 import { FormBody } from "@/components/form/form-body";
