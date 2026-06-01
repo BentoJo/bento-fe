@@ -1,18 +1,19 @@
 import { ChevronDown } from "lucide-react";
 import { faqs } from "@/features/landing/data/content";
+import { Reveal } from "@/features/landing/components/reveal";
 
 export function Faq() {
   return (
     <section id="faq" className="relative scroll-mt-24 py-24 sm:py-32">
       <div className="mx-auto max-w-3xl px-5 sm:px-8">
-        <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-400">
+        <Reveal className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
             FAQ
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Questions, answered
           </h2>
-        </div>
+        </Reveal>
 
         <div className="mt-12 space-y-3">
           {faqs.map((faq) => (

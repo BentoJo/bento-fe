@@ -21,6 +21,23 @@ export function LandingNav({ isAuthenticated }: LandingNavProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    if (!href.startsWith("#")) return;
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
+    e.preventDefault();
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    target.scrollIntoView({
+      behavior: prefersReduced ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <header
       className={cn(
@@ -47,6 +64,7 @@ export function LandingNav({ isAuthenticated }: LandingNavProps) {
             <Link
               key={link.href}
               href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="text-sm text-[#94A3B8] transition-colors hover:text-white"
             >
               {link.label}
@@ -58,7 +76,7 @@ export function LandingNav({ isAuthenticated }: LandingNavProps) {
           {isAuthenticated ? (
             <Button
               asChild
-              className="bg-blue-500 text-white hover:bg-blue-500/85"
+              className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-md shadow-blue-900/30 transition-all hover:shadow-lg hover:shadow-blue-700/30"
             >
               <Link href="/home">Open App</Link>
             </Button>
@@ -67,13 +85,13 @@ export function LandingNav({ isAuthenticated }: LandingNavProps) {
               <Button
                 asChild
                 variant="ghost"
-                className="hidden text-[#94A3B8] hover:bg-white/5 hover:text-white sm:inline-flex"
+                className="hidden rounded-full text-[#94A3B8] hover:bg-white/5 hover:text-white sm:inline-flex"
               >
                 <Link href="/auth/login">Sign in</Link>
               </Button>
               <Button
                 asChild
-                className="bg-blue-500 text-white hover:bg-blue-500/85"
+                className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-md shadow-blue-900/30 transition-all hover:shadow-lg hover:shadow-blue-700/30"
               >
                 <Link href="/auth/register">Get started</Link>
               </Button>
