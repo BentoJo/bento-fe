@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/auth/server";
+import { requireAuth } from "@/shared/lib/auth/server";
 import { signOut } from "next-auth/react";
 
 export default async function DashboardPage() {

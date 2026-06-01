@@ -1,12 +1,12 @@
-import { getAuthSession } from "@/lib/auth/server";
-import FormContainer from "@/components/form/form-container";
-import { FormHeader } from "@/components/form/form-header";
-import { FormBody } from "@/components/form/form-body";
-import { FormFooter } from "@/components/form/form-footer";
-import { Button } from "@/components/ui/button";
+import { getAuthSession } from "@/shared/lib/auth/server";
+import FormContainer from "@/shared/components/form/form-container";
+import { FormHeader } from "@/shared/components/form/form-header";
+import { FormBody } from "@/shared/components/form/form-body";
+import { FormFooter } from "@/shared/components/form/form-footer";
+import { Button } from "@/shared/components/ui/button";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import StepImage from "@/components/shared/step-image";
+import StepImage from "@/shared/components/step-image";
 
 export default async function Home() {
   const session = await getAuthSession();
