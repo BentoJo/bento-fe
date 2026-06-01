@@ -101,7 +101,7 @@ export function LoginForm() {
         });
 
         if (result?.ok) {
-          router.push("/dashboard");
+          router.push("/home");
           return;
         }
 

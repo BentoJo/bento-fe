@@ -12,7 +12,7 @@ export default async function Home() {
   const session = await getAuthSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect("/home");
   }
 
   return (
