@@ -41,6 +41,9 @@ Imports use `@/features/...` and `@/shared/...` (`@/*` → repo root). Auth feat
 - **P1 done:** auth flow extracted into `features/auth/components` (login/register/otp-slots) + `useResendTimer`; routes are thin.
 - **P2 mostly done (3-agent fan-out, verified `next build`):** workspace api/types, global home, create modal, workspace dashboard, app shells. Remaining: settings UI + wiring the workspace switcher.
 - **Env correction:** gateway global prefix is `api/v1` (not `v1`) and default PORT is 5000 → `NEXT_PUBLIC_API_URL` must be `http://<host>/api`. Gateway wraps responses as `{success,message,data}` → API layer unwraps `.data.data`.
+- **P3/P4/settings/teams done (4-agent fan-out, verified `next build`):** roles mgmt, users/members + invite, teams, workspace settings (tabbed), sidebar grouped. Gateway gained a `teams` controller.
+- **Stack brought up:** Docker (4 services + 3 db + redis), drizzle push + seed, gateway on :5050.
+- **All remaining designed screens are backend-blocked** (boards/kanban/tasks, calendar, profile, sessions, notifications) — gateway exposes none of these yet.
 
 ---
 
@@ -75,6 +78,11 @@ Endpoints: `create, :id/overview, :id (get/put/delete), restore, transfer-owners
 - [x] 🎨 Workspace dashboard `/w/[workspaceId]` — real stats + boards preview; progress/schedule/members empty
 - [ ] Workspace switcher — currently static (wire to listUserWorkspaces)
 - [ ] 🎨 Workspace settings: rename, delete, restore, transfer ownership (API exists, no UI yet)
+
+## Local stack (running)
+- 4 backends in Docker on `backend-network` + 3 Postgres + redis. Gateway HTTP on **:5050** (5000 taken by macOS AirPlay). Schemas via `drizzle-kit push`; authz+ws seeded.
+- FE: `cd bento-fe && npm run dev` → http://localhost:3001 (NEXT_PUBLIC_API_URL=http://localhost:5050/api).
+- Connectable now: workspaces, members, roles, teams, auth. NOT on gateway: boards/columns/cards, calendar, IAM user/profile, sessions/devices, notifications.
 
 ## Phase 3 — Members & invites
 Endpoints: `members/invite, invites/accept, invites/reject, members, members/:id, members/:id/role, members/:id (del), members/validate`
