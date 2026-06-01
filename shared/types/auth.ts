@@ -50,11 +50,12 @@ export interface SessionInfo {
 
 export interface VerifyOtpResponse {
   accessToken: string;
-  refreshToken: string;
+  // refreshToken / session are delivered via httpOnly cookies; body may omit them.
+  refreshToken?: string;
   accessTokenExpiresAt: string;
   refreshTokenExpiresAt: string;
   user: UserInfo;
-  session: SessionInfo;
+  session?: SessionInfo;
   success: boolean;
   message: string;
 }

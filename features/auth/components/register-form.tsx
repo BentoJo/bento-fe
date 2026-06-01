@@ -89,7 +89,10 @@ export function RegisterForm() {
           session,
         } = response;
 
-        storeDeviceId(session.deviceId);
+        // deviceId/session now arrive via httpOnly cookies; the body may omit them.
+        if (session?.deviceId) {
+          storeDeviceId(session.deviceId);
+        }
 
         const result = await signIn("credentials", {
           accessToken,
