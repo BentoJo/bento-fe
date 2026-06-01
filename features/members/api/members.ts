@@ -29,7 +29,7 @@ export async function listMembers(
   try {
     const res = await getClientAxios().post<ApiEnvelope<ListMembersResponse>>(
       `${BASE}/${workspaceId}/members`,
-      { page: 1, limit: 20, ...body },
+      { ...body, page: body.page ?? 1, limit: body.limit ?? 20 },
     );
     return res.data.data;
   } catch (error) {
@@ -59,7 +59,7 @@ export async function listInvites(
   try {
     const res = await getClientAxios().post<ApiEnvelope<ListInvitesResponse>>(
       `${BASE}/${workspaceId}/invites`,
-      { page: 1, limit: 20, ...body },
+      { ...body, page: body.page ?? 1, limit: body.limit ?? 20 },
     );
     return res.data.data;
   } catch (error) {

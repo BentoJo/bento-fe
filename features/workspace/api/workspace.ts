@@ -39,8 +39,8 @@ export async function listUserWorkspaces(
   body: ListUserWorkspacesRequest = {},
 ): Promise<ListUserWorkspacesResponse> {
   try {
-    // Gateway requires a positive page; default pagination when unset.
-    const payload = { page: 1, limit: 20, ...body };
+    // Gateway requires a positive page; default even when keys are explicitly undefined.
+    const payload = { ...body, page: body.page ?? 1, limit: body.limit ?? 20 };
     const res = await getClientAxios().post<
       ApiEnvelope<ListUserWorkspacesResponse>
     >(`${BASE}/me/workspaces`, payload);

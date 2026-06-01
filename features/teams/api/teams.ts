@@ -33,7 +33,7 @@ export async function listTeams(
   try {
     const res = await getClientAxios().get<ApiEnvelope<ListTeamsResponse>>(
       teamsPath(workspaceId),
-      { params: { page: 1, limit: 20, ...params } },
+      { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 20 } },
     );
     return res.data.data;
   } catch (error) {
@@ -141,7 +141,7 @@ export async function listTeamMembers(
     const res = await getClientAxios().get<
       ApiEnvelope<ListTeamMembersResponse>
     >(`${teamsPath(workspaceId)}/${teamId}/members`, {
-      params: { page: 1, limit: 20, ...params },
+      params: { ...params, page: params.page ?? 1, limit: params.limit ?? 20 },
     });
     return res.data.data;
   } catch (error) {
