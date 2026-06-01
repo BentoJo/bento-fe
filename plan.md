@@ -62,6 +62,8 @@ Imports use `@/features/...` and `@/shared/...` (`@/*` → repo root). Auth feat
 | Profile view/edit | 🔨 FE built, read from session; edit needs IAM user on gateway |
 
 ## Outstanding backend work (gateway REST proxies needed)
+- **Boards** — gateway now has `board.proto` + `src/shared/types/board/board.ts` (BoardService: create/get/update/delete/restore/archive/unarchive, ListWorkspaceBoards, board members add/remove/list, favorite/unfavorite/list-favorites) — but **no board controller/module is wired yet** → still not callable. FE note: gateway's `CreateBoardRequest`/`BoardResponse` use `visibility: 'public'|'private'` (not the ws proto's `isPrivate` boolean) — align `features/boards` types to `visibility` when wiring.
+- **Columns + Cards** — not on the gateway at all yet (no proto/types/controller). Needed for the Kanban body.
 - board / column / card controllers (ws gRPC already exists + seeded data)
 - calendar / events
 - IAM user/profile (get + update) on gateway
