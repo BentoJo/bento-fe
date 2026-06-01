@@ -38,6 +38,9 @@ Imports use `@/features/...` and `@/shared/...` (`@/*` → repo root). Auth feat
 
 ## Progress log
 - **P0 done (verified `next build`):** repo migrated to features/shared; brand tokens; `proxy.ts` (Next 16); env scaffold; resend-otp bug fixed.
+- **P1 done:** auth flow extracted into `features/auth/components` (login/register/otp-slots) + `useResendTimer`; routes are thin.
+- **P2 mostly done (3-agent fan-out, verified `next build`):** workspace api/types, global home, create modal, workspace dashboard, app shells. Remaining: settings UI + wiring the workspace switcher.
+- **Env correction:** gateway global prefix is `api/v1` (not `v1`) and default PORT is 5000 → `NEXT_PUBLIC_API_URL` must be `http://<host>/api`. Gateway wraps responses as `{success,message,data}` → API layer unwraps `.data.data`.
 
 ---
 
@@ -65,10 +68,13 @@ Endpoints: `register, login, verify-otp, resend-otp, refresh-token, logout, logo
 
 ## Phase 2 — Workspaces *(core entity)*
 Endpoints: `create, :id/overview, :id (get/put/delete), restore, transfer-ownership, :me/workspaces`
-- [ ] 🎨 Workspace list / switcher (post-auth landing)
-- [ ] 🎨 Create workspace (modal)
-- [ ] 🎨 Workspace overview/detail page
-- [ ] 🎨 Workspace settings: rename, delete, restore, transfer ownership
+- [x] Foundation: `shared/types/workspace.ts`, `ApiEnvelope`, `features/workspace/api/workspace.ts` (unwraps gateway envelope), shadcn primitives
+- [x] App shell: `shared/layout/{brand-logo,app-topbar,global-sidebar,global-shell}` + post-auth routing to `/home`
+- [x] 🎨 Global home `/home` — Your Workspaces (real), Favorites + Pending Invitations (empty states)
+- [x] 🎨 Create workspace modal — name + logo wired; slug/icon/invite disabled ("soon")
+- [x] 🎨 Workspace dashboard `/w/[workspaceId]` — real stats + boards preview; progress/schedule/members empty
+- [ ] Workspace switcher — currently static (wire to listUserWorkspaces)
+- [ ] 🎨 Workspace settings: rename, delete, restore, transfer ownership (API exists, no UI yet)
 
 ## Phase 3 — Members & invites
 Endpoints: `members/invite, invites/accept, invites/reject, members, members/:id, members/:id/role, members/:id (del), members/validate`
@@ -116,6 +122,14 @@ IAM exposes devices + sessions.
 3. Confirm OTP flow contract: does `login`/`register` return a challenge id for `verify-otp`,
    or is it email-keyed? FE needs the exact request/response shape.
 4. Invite accept/reject: confirm whether invite token comes via email deep-link query param.
+
+### Phase 2 gaps found (workspace)
+5. `listUserWorkspaces` lacks: **favorite flag**, **member count**, "last active" — home design shows them.
+6. No **"list my pending invitations"** endpoint — home invitations rail can't be wired.
+7. No **workspace logo upload** endpoint — create modal only takes a `logoUrl` string.
+8. `WorkspaceListItem.roleId` is an id; FE needs a **role name** (or include it) to show role badges.
+9. `getWorkspaceOverview` has no **ownerId**/role name, and no **weekly-progress / day-schedule / active-members** data — dashboard panels are empty until provided.
+10. Gateway global prefix is `api/v1` and default PORT 5000 (FE assumed `/v1` + 3000) — align envs.
 
 ---
 
