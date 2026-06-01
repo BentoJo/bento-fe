@@ -33,7 +33,7 @@ export async function listTeams(
   try {
     const res = await getClientAxios().get<ApiEnvelope<ListTeamsResponse>>(
       teamsPath(workspaceId),
-      { params },
+      { params: { page: 1, limit: 20, ...params } },
     );
     return res.data.data;
   } catch (error) {
@@ -140,7 +140,9 @@ export async function listTeamMembers(
   try {
     const res = await getClientAxios().get<
       ApiEnvelope<ListTeamMembersResponse>
-    >(`${teamsPath(workspaceId)}/${teamId}/members`, { params });
+    >(`${teamsPath(workspaceId)}/${teamId}/members`, {
+      params: { page: 1, limit: 20, ...params },
+    });
     return res.data.data;
   } catch (error) {
     fail(error, "Failed to load team members.");

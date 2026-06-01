@@ -39,9 +39,11 @@ export async function listUserWorkspaces(
   body: ListUserWorkspacesRequest = {},
 ): Promise<ListUserWorkspacesResponse> {
   try {
+    // Gateway requires a positive page; default pagination when unset.
+    const payload = { page: 1, limit: 20, ...body };
     const res = await getClientAxios().post<
       ApiEnvelope<ListUserWorkspacesResponse>
-    >(`${BASE}/me/workspaces`, body);
+    >(`${BASE}/me/workspaces`, payload);
     return res.data.data;
   } catch (error) {
     fail(error, "Failed to load workspaces.");
