@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Flag } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { BrowserFrame } from "@/features/landing/components/browser-frame";
+import { HeroSpotlight } from "@/features/landing/components/hero-spotlight";
 
 interface HeroProps {
   isAuthenticated: boolean;
@@ -17,20 +18,12 @@ export function Hero({ isAuthenticated }: HeroProps) {
         <div className="absolute right-[14%] top-56 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,rgba(34,211,238,0.14),transparent)] blur-3xl" />
         {/* dotted grid */}
         <div className="absolute inset-0 [background-image:radial-gradient(rgba(148,163,184,0.10)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(70%_55%_at_50%_25%,black,transparent)]" />
+        {/* interactive cursor-follow glow */}
+        <HeroSpotlight />
       </div>
 
       <div className="mx-auto max-w-7xl px-5 text-center sm:px-8">
-        {/* gradient eyebrow */}
-        <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] backdrop-blur">
-            <span className="size-1.5 rounded-full bg-gradient-to-br from-blue-400 to-violet-500" />
-            <span className="bg-gradient-to-r from-blue-300 to-violet-300 bg-clip-text text-transparent">
-              Project management, reimagined
-            </span>
-          </span>
-        </div>
-
-        <h1 className="mx-auto mt-7 max-w-4xl text-balance text-5xl font-bold leading-[0.98] tracking-tight text-white motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-700 sm:text-7xl lg:text-[5.25rem]">
+        <h1 className="mx-auto max-w-4xl text-balance text-5xl font-bold leading-[0.98] tracking-tight text-white motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-700 sm:text-7xl lg:text-[5.25rem]">
           Manage work the way{" "}
           <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-violet-500 bg-clip-text text-transparent">
             your team thinks.
