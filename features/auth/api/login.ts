@@ -1,4 +1,5 @@
 import { getClientAxios } from "@/shared/lib/api/client";
+import { unwrap } from "@/shared/lib/api/unwrap";
 import {
   LoginRequest,
   LoginRequestSchema,
@@ -17,13 +18,11 @@ export async function Login(values: LoginRequest): Promise<LoginResponse> {
 
     const { email } = validatedData.data;
 
-    const response = await axios.post<LoginResponse>("/v1/auth/login", {
+    const response = await axios.post("/v1/auth/login", {
       email,
     });
 
-    return {
-      ...response.data,
-    };
+    return unwrap<LoginResponse>(response);
   } catch (error) {
     throw new Error(
       error instanceof Error && error.message

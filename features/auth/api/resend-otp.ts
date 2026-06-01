@@ -1,4 +1,5 @@
 import { getClientAxios } from "@/shared/lib/api/client";
+import { unwrap } from "@/shared/lib/api/unwrap";
 import { OtpResendResponse } from "@/shared/types/auth";
 import {
   ResendOtpRequest,
@@ -25,7 +26,7 @@ export async function ResendOtp(
       email,
     });
 
-    return { ...response.data };
+    return unwrap<OtpResendResponse>(response);
   } catch (error) {
     throw new Error(
       error instanceof Error && error.message

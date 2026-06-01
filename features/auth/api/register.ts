@@ -1,4 +1,5 @@
 import { getClientAxios } from "@/shared/lib/api/client";
+import { unwrap } from "@/shared/lib/api/unwrap";
 import { RegisterResponse } from "@/shared/types/auth";
 import {
   RegisterRequest,
@@ -20,15 +21,13 @@ export async function Register(
 
     const { email, firstName, lastName } = validatedData.data;
 
-    const response = await axios.post<RegisterResponse>("/v1/auth/register", {
+    const response = await axios.post("/v1/auth/register", {
       email,
       firstName,
       lastName,
     });
 
-    return {
-      ...response.data,
-    };
+    return unwrap<RegisterResponse>(response);
   } catch (error) {
     throw new Error(
       error instanceof Error && error.message
