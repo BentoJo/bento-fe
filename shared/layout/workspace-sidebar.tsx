@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   LayoutGrid,
+  Calendar,
   BarChart3,
   Users,
   Archive,
@@ -32,9 +33,13 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const base = `/w/${workspaceId}`;
 
-  const mainNav: NavItem[] = [
+  const workspaceNav: NavItem[] = [
     { label: "Home", href: base, icon: Home, exact: true },
     { label: "Boards", href: `${base}/boards`, icon: LayoutGrid },
+    { label: "Calendar", href: `${base}/calendar`, icon: Calendar },
+  ];
+
+  const adminNav: NavItem[] = [
     { label: "Analytics", href: `${base}/analytics`, icon: BarChart3 },
     { label: "Users", href: `${base}/users`, icon: Users },
     { label: "Archive", href: `${base}/archive`, icon: Archive },
@@ -83,7 +88,16 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
           Workspace
         </p>
         <ul className="flex flex-col gap-1">
-          {mainNav.map((item) => (
+          {workspaceNav.map((item) => (
+            <NavLink key={item.label} item={item} active={isActive(item)} />
+          ))}
+        </ul>
+
+        <p className="px-3 pb-2 pt-6 text-[10px] font-medium uppercase tracking-wide text-sidebar-foreground/40">
+          Admin
+        </p>
+        <ul className="flex flex-col gap-1">
+          {adminNav.map((item) => (
             <NavLink key={item.label} item={item} active={isActive(item)} />
           ))}
         </ul>
