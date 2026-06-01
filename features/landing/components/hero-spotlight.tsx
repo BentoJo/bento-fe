@@ -4,9 +4,8 @@ import { useEffect, useRef } from "react";
 
 /**
  * Interactive cursor-following glow for the hero background.
- * Listens on window (never blocks clicks), reveals a soft radial glow that
- * tracks the pointer while it's over the hero, and fades out when it leaves.
- * Desktop/pointer only.
+ * A persistent soft radial light that tracks the pointer across the hero.
+ * Listens on window so it never blocks clicks; rAF-throttled.
  */
 export function HeroSpotlight() {
   const ref = useRef<HTMLDivElement>(null);
@@ -14,7 +13,6 @@ export function HeroSpotlight() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     let frame = 0;
     const onMove = (e: MouseEvent) => {
@@ -22,12 +20,8 @@ export function HeroSpotlight() {
       frame = requestAnimationFrame(() => {
         frame = 0;
         const r = el.getBoundingClientRect();
-        const x = e.clientX - r.left;
-        const y = e.clientY - r.top;
-        const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height;
-        el.style.setProperty("--mx", `${x}px`);
-        el.style.setProperty("--my", `${y}px`);
-        el.style.setProperty("--op", inside ? "1" : "0");
+        el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        el.style.setProperty("--my", `${e.clientY - r.top}px`);
       });
     };
 
@@ -42,11 +36,10 @@ export function HeroSpotlight() {
     <div
       ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 hidden transition-opacity duration-300 md:block"
+      className="pointer-events-none absolute inset-0 -z-10"
       style={{
-        opacity: "var(--op, 0)",
         background:
-          "radial-gradient(560px circle at var(--mx, 50%) var(--my, 30%), rgba(59,130,246,0.18), rgba(139,92,246,0.10) 38%, transparent 66%)",
+          "radial-gradient(520px circle at var(--mx, 50%) var(--my, 32%), rgba(59,130,246,0.32), rgba(139,92,246,0.16) 40%, transparent 70%)",
       }}
     />
   );
