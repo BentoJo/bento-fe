@@ -44,6 +44,33 @@ Imports use `@/features/...` and `@/shared/...` (`@/*` → repo root). Auth feat
 - **P3/P4/settings/teams done (4-agent fan-out, verified `next build`):** roles mgmt, users/members + invite, teams, workspace settings (tabbed), sidebar grouped. Gateway gained a `teams` controller.
 - **Stack brought up:** Docker (4 services + 3 db + redis), drizzle push + seed, gateway on :5050.
 - **All remaining designed screens are backend-blocked** (boards/kanban/tasks, calendar, profile, sessions, notifications) — gateway exposes none of these yet.
+- **Boards/Calendar/Profile built FE-only (wire-later, verified `next build`):** full Kanban (boards, columns, cards, create-task drawer, task-details, assign-members, native DnD), month calendar, profile view+settings. All degrade to empty states until the gateway exposes board/column/card, calendar, and IAM user/session/notifications endpoints.
+- **CORS fix:** gateway used `origin:'*'` with `credentials:true` (invalid). Changed `bento-be-gateway/src/main.ts` to fall back to `origin: true` (reflect caller). Gateway rebuilt. (Backend repo change, uncommitted.)
+
+## All-screens status
+| Screen | State |
+|---|---|
+| Auth (login/register/OTP) | ✅ wired |
+| Global home + create workspace | ✅ wired (favorites/invites need BE) |
+| Workspace dashboard | ✅ wired (charts/schedule need BE) |
+| Users/Members + invite | ✅ wired (profile enrichment needs BE) |
+| Roles & permissions | ✅ wired (create-role + counts need BE) |
+| Teams | ✅ wired |
+| Settings (workspace/sessions/notifications/members) | ✅ workspace+roles wired; sessions(logout-all wired)/notifications need BE |
+| Boards / Kanban / Tasks | 🔨 FE built, empty until gateway board/column/card REST |
+| Calendar | 🔨 FE built, empty until calendar endpoint |
+| Profile view/edit | 🔨 FE built, read from session; edit needs IAM user on gateway |
+
+## Outstanding backend work (gateway REST proxies needed)
+- board / column / card controllers (ws gRPC already exists + seeded data)
+- calendar / events
+- IAM user/profile (get + update) on gateway
+- IAM sessions & devices list on gateway
+- notifications endpoints
+- enrich member list with user profile (name/email/avatar)
+- favorites flag + member counts on workspace list; weekly-progress/schedule/active-members for dashboard
+- "list my pending invitations" endpoint
+- create-role-with-permissions endpoint; per-role user counts
 
 ---
 
