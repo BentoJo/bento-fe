@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { refreshAccessToken } from "@/shared/lib/auth/refresh-token";
+import { refreshAccessTokenServer } from "@/shared/lib/auth/refresh-token-server";
 import type { NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import type { Session } from "next-auth";
@@ -115,7 +115,7 @@ export const nextAuthOptions: NextAuthOptions = {
       }
 
       try {
-        const refreshedTokens = await refreshAccessToken();
+        const refreshedTokens = await refreshAccessTokenServer();
 
         (token as AuthenticatedJWT).accessToken = refreshedTokens.accessToken;
         (token as AuthenticatedJWT).refreshToken = refreshedTokens.refreshToken;
@@ -127,8 +127,10 @@ export const nextAuthOptions: NextAuthOptions = {
         );
 
         return token;
-      } catch (error) {
-        console.error("Error refreshing access token:", error);
+      } catch {
+        // Refresh can fail when the session/refresh-token is no longer valid
+        // (e.g. revoked). Mark the token so the client can prompt re-login;
+        // don't throw — that would crash any server component calling the session.
         (token as AuthenticatedJWT).error = "RefreshAccessTokenError";
         return token;
       }
