@@ -47,6 +47,11 @@ Imports use `@/features/...` and `@/shared/...` (`@/*` → repo root). Auth feat
 - **Boards/Calendar/Profile built FE-only (wire-later, verified `next build`):** full Kanban (boards, columns, cards, create-task drawer, task-details, assign-members, native DnD), month calendar, profile view+settings. All degrade to empty states until the gateway exposes board/column/card, calendar, and IAM user/session/notifications endpoints.
 - **CORS fix:** gateway used `origin:'*'` with `credentials:true` (invalid). Changed `bento-be-gateway/src/main.ts` to fall back to `origin: true` (reflect caller). Gateway rebuilt. (Backend repo change, uncommitted.)
 
+## Wiring status (current)
+- ✅ Wired + e2e-verified through the live gateway: auth (login/OTP/verify), create/list workspace, workspace overview, members list, teams list, **boards create/list**, board favorites toggle, workspace switcher.
+- 🔴 Backend bug found: listing **roles returns 403 even for the workspace owner** — the create-workspace flow doesn't grant the owner role-management permissions in authz. Cascades to the Users page role badges + Settings → Members & Permissions. (FE degrades gracefully.)
+- ⛔ Still backend-blocked (no gateway endpoint): board **columns/cards** (kanban body), calendar/events, IAM profile/user, sessions/devices, notifications, dashboard charts/schedule/presence, create-role + per-role counts, list-my-invitations, member profile enrichment, workspace favorites/counts.
+
 ## All-screens status
 | Screen | State |
 |---|---|
