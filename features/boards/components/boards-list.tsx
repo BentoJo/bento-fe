@@ -21,6 +21,8 @@ import {
   archiveBoard,
   deleteBoard,
   unarchiveBoard,
+  favoriteBoard,
+  unfavoriteBoard,
 } from "@/features/boards/api/boards";
 import { useBoards } from "@/features/boards/hooks/use-boards";
 import type { Board } from "@/features/boards/types/board";
@@ -184,6 +186,15 @@ function BoardCard({
       }
     }, "Failed to update board.");
 
+  const handleFavoriteToggle = () =>
+    run(async () => {
+      if (board.isFavorite) {
+        await unfavoriteBoard(workspaceId, board.id);
+      } else {
+        await favoriteBoard(workspaceId, board.id);
+      }
+    }, "Failed to update favorite.");
+
   const handleDelete = () =>
     run(async () => {
       await deleteBoard(workspaceId, board.id);
@@ -221,6 +232,14 @@ function BoardCard({
                 <KanbanSquare className="size-4" />
                 Open board
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => void handleFavoriteToggle()}>
+              <Star
+                className={
+                  board.isFavorite ? "size-4 fill-warning text-warning" : "size-4"
+                }
+              />
+              {board.isFavorite ? "Unfavorite" : "Favorite"}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => void handleArchiveToggle()}>
               {board.isArchived ? (
