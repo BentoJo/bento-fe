@@ -35,7 +35,7 @@ export async function listBoards(
   try {
     const res = await getClientAxios().get<ApiEnvelope<ListBoardsResponse>>(
       boardsPath(workspaceId),
-      { params },
+      { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 20 } },
     );
     return res.data.data;
   } catch (error) {

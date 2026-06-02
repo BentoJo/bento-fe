@@ -34,7 +34,7 @@ export interface Board {
   id: string;
   workspaceId: string;
   name: string;
-  isPrivate: boolean;
+  visibility: Visibility;
   icon?: string;
   isArchived: boolean;
   isFavorite?: boolean;
@@ -93,13 +93,13 @@ export interface ListBoardsResponse {
 
 export interface CreateBoardRequest {
   name: string;
-  isPrivate: boolean;
+  visibility?: Visibility;
   icon?: string;
 }
 
 export interface UpdateBoardRequest {
   name?: string;
-  isPrivate?: boolean;
+  visibility?: Visibility;
   icon?: string;
 }
 
