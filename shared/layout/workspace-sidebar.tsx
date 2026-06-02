@@ -12,9 +12,9 @@ import {
   ScrollText,
   Settings,
   CircleHelp,
-  ChevronsUpDown,
 } from "lucide-react";
 import { BrandLogo } from "@/shared/layout/brand-logo";
+import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { cn } from "@/shared/lib/utils";
 
 interface WorkspaceSidebarProps {
@@ -62,25 +62,9 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
         <BrandLogo />
       </div>
 
-      {/* Workspace switcher (static for now) */}
-      {/* TODO(BE): wire to listUserWorkspaces for a real switcher dropdown. */}
+      {/* Workspace switcher — lists the user's workspaces and switches between them. */}
       <div className="px-3">
-        <button
-          type="button"
-          className={cn(
-            "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-            "bg-sidebar-accent/40 text-left text-sm transition-colors",
-            "hover:bg-sidebar-accent/60",
-          )}
-        >
-          <span className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wide text-sidebar-foreground/50">
-              Your App
-            </span>
-            <span className="truncate font-medium">Bento</span>
-          </span>
-          <ChevronsUpDown className="size-4 text-sidebar-foreground/50" />
-        </button>
+        <WorkspaceSwitcher workspaceId={workspaceId} />
       </div>
 
       <nav className="mt-6 flex flex-1 flex-col px-3">
