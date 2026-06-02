@@ -1,7 +1,10 @@
 import { getClientAxios } from "@/shared/lib/api/client";
 import { unwrap } from "@/shared/lib/api/unwrap";
 import { VerifyOtpResponse } from "@/shared/types/auth";
-import { verifyOtp, VerifyOtpRequest } from "@/features/auth/validation/verify-otp";
+import {
+  verifyOtp,
+  VerifyOtpRequest,
+} from "@/features/auth/validation/verify-otp";
 
 export async function VerifyOtp(
   values: VerifyOtpRequest,
