@@ -1,0 +1,7 @@
+services:
+  bento-fe:
+    image: ghcr.io/bentojo/bento-fe:latest
+    container_name: bento-fe
+    restart: always
+    ports:
+      - "3000:3000"
