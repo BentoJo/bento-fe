@@ -19,5 +19,8 @@ export async function refreshAccessToken(): Promise<AuthTokens> {
     throw new Error("Failed to refresh access token.");
   }
 
-  return response.json();
+  // The gateway wraps every response as { success, message, data }. Unwrap so
+  // callers read accessToken/expiry at the top level (matching AuthTokens).
+  const body = await response.json();
+  return (body?.data ?? body) as AuthTokens;
 }

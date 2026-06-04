@@ -108,7 +108,15 @@ export const nextAuthOptions: NextAuthOptions = {
       }
 
       const authToken = token as AuthenticatedJWT;
-      const shouldRefresh = Date.now() >= authToken.accessTokenExpiresAt * 1000;
+
+      // Refresh 60s BEFORE expiry so in-flight requests never carry a token that
+      // expires mid-request. A missing/NaN expiry also forces a refresh (e.g. an
+      // older token minted before expiry was an absolute timestamp).
+      const REFRESH_SKEW_MS = 60_000;
+      const expiresAtMs = authToken.accessTokenExpiresAt * 1000;
+      const shouldRefresh =
+        !Number.isFinite(expiresAtMs) ||
+        Date.now() >= expiresAtMs - REFRESH_SKEW_MS;
 
       if (!shouldRefresh) {
         return token;
@@ -118,13 +126,20 @@ export const nextAuthOptions: NextAuthOptions = {
         const refreshedTokens = await refreshAccessTokenServer();
 
         (token as AuthenticatedJWT).accessToken = refreshedTokens.accessToken;
-        (token as AuthenticatedJWT).refreshToken = refreshedTokens.refreshToken;
+        // The refresh token is rotated server-side via httpOnly cookie, not in
+        // the body — only overwrite when the backend actually returns one.
+        if (refreshedTokens.refreshToken) {
+          (token as AuthenticatedJWT).refreshToken =
+            refreshedTokens.refreshToken;
+        }
         (token as AuthenticatedJWT).accessTokenExpiresAt = Number(
           refreshedTokens.accessTokenExpiresAt,
         );
         (token as AuthenticatedJWT).refreshTokenExpiresAt = Number(
           refreshedTokens.refreshTokenExpiresAt,
         );
+        // Clear any stale refresh error after a successful refresh.
+        (token as AuthenticatedJWT).error = undefined;
 
         return token;
       } catch {
