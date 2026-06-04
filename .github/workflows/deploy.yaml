@@ -30,7 +30,7 @@ jobs:
             cd /apps/bento-fe
             git fetch origin
             git reset --hard origin/main
-            docker compose up -d --build
+            docker compose up -d --build --force-recreate
             docker image prune -f
             sleep 5
             curl -fsS -o /dev/null http://127.0.0.1:3000/ && echo "FE is up on :3000"
