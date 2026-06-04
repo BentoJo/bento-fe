@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Mail, MessageSquareWarning } from "lucide-react";
+import { Home, Mail, MessageSquareWarning, LogOut, Loader2 } from "lucide-react";
 
 import { cn } from "@/shared/lib/utils";
 import { BrandLogo } from "@/shared/layout/brand-logo";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 
 interface NavItem {
   label: string;
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function GlobalSidebar() {
   const pathname = usePathname();
+  const { logout, isLoggingOut } = useLogout();
 
   return (
     <aside className="flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
@@ -58,6 +60,28 @@ export function GlobalSidebar() {
           );
         })}
       </nav>
+
+      {/* Logout pinned to the bottom of the sidebar. */}
+      <div className="mt-auto border-t border-sidebar-border/60 p-3">
+        <button
+          type="button"
+          onClick={logout}
+          disabled={isLoggingOut}
+          aria-label="Log out"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+            "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+          )}
+        >
+          {isLoggingOut ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" />
+          ) : (
+            <LogOut className="size-4 shrink-0" />
+          )}
+          <span>{isLoggingOut ? "Logging out…" : "Log out"}</span>
+        </button>
+      </div>
     </aside>
   );
 }
