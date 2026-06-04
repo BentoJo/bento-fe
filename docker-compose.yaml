@@ -1,0 +1,23 @@
+# Builds + runs the FE on the server (podman/docker compose, local build).
+#
+# NEXT_PUBLIC_* are inlined at BUILD time -> passed as build args from the
+# .env beside this file. NEXTAUTH_SECRET / NEXTAUTH_URL are runtime secrets,
+# loaded from the same .env via env_file (never baked into the image).
+#
+# Deploy on the server: `git pull && docker compose up -d --build`
+# Bound to localhost:3000 — put a reverse proxy (nginx/Caddy) in front for TLS.
+services:
+  bento-fe:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY: ${NEXT_PUBLIC_DEVICE_FINGERPRINT_STORAGE_KEY}
+        NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY: ${NEXT_PUBLIC_DEVICE_NAME_STORAGE_KEY}
+    container_name: bento-fe
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:3000:3000"
