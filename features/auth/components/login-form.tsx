@@ -20,6 +20,7 @@ import { FormHeader } from "@/shared/components/form/form-header";
 import { FormBody } from "@/shared/components/form/form-body";
 import { FormFooter } from "@/shared/components/form/form-footer";
 import StepImage from "@/shared/components/step-image";
+import { cairo } from "@/shared/lib/fonts";
 import {
   Field,
   FieldDescription,
@@ -161,27 +162,21 @@ export function LoginForm() {
   const onSubmit = handleSubmit(
     isOtpStep ? handleOtpSubmit : handleLoginSubmit,
   );
-
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#020617]">
-      <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center gap-8 lg:gap-10">
-        <div className="absolute inset-y-0 left-0 z-0 w-9/12 rounded-2xl bg-[#0F172A]" />
-        <StepImage
-          width={2000}
-          height={2000}
-          src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login.png"}
-          alt="ManeJo authentication"
-          className="max-w-3/5 z-10"
-        />
-        <FormContainer className="relative z-10">
+return (
+  <main className="min-h-screen bg-[#EEF2F8] p-6 lg:p-8 flex items-center justify-center">
+    <div className="w-full max-w-[1500px] rounded-[32px] border border-[#E4EAF5] bg-[#F5F7FC] p-6 lg:p-10 ">
+      <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
+        
+        <FormContainer className="w-full max-w-[520px] h-[700px] rounded-[24px] border-[#E4EAF5] bg-white px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
           <FormHeader
             title={
               isOtpStep ? (
                 <>Check your Email</>
               ) : (
-                <>
-                  Welcome to Mane<span className="text-blue-500">Jo</span>
-                </>
+                <div className={`${cairo.className} text-[#0F172A] text-3xl`}>
+                  Welcome in Mane
+                  <span className="text-[#2F66EA]">Jo</span>
+                </div>
               )
             }
             subtitle={
@@ -192,20 +187,28 @@ export function LoginForm() {
               )
             }
           />
+
           <FormBody>
             <form onSubmit={onSubmit} className="w-full">
-              <FieldGroup className="gap-6 text-white">
+              <FieldGroup className="gap-2">
                 {isEmailStep && (
                   <Controller
                     name="email"
                     control={control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="email">Email :</FieldLabel>
-                        <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                        <FieldLabel
+                          htmlFor="email"
+                          className=" text-sm font-medium text-[#64748B]"
+                        >
+                          Email
+                        </FieldLabel>
+
+                        <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
                           <InputGroupAddon align="inline-start">
-                            <Mail className="size-4" />
+                            <Mail className="size-4 text-[#94A3B8]" />
                           </InputGroupAddon>
+
                           <InputGroupInput
                             {...field}
                             id="email"
@@ -213,9 +216,10 @@ export function LoginForm() {
                             placeholder="Enter your email"
                             autoComplete="email"
                             aria-invalid={fieldState.invalid}
-                            className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                            className="text-[#334155] placeholder:text-[#94A3B8]"
                           />
                         </InputGroup>
+
                         <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
@@ -228,7 +232,13 @@ export function LoginForm() {
                     control={control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="otp">Enter Code :</FieldLabel>
+                        <FieldLabel
+                          htmlFor="otp"
+                          className="mb-2 text-sm font-medium text-[#64748B]"
+                        >
+                          Enter Code
+                        </FieldLabel>
+
                         <div className="flex items-center gap-3">
                           <OtpSlots
                             value={field.value}
@@ -238,7 +248,9 @@ export function LoginForm() {
                             disabled={field.disabled}
                           />
                         </div>
+
                         <FieldError errors={[fieldState.error]} />
+
                         {otpExpiresIn && (
                           <FieldDescription>
                             The latest code expires in {otpExpiresIn}.
@@ -249,7 +261,7 @@ export function LoginForm() {
                   />
                 )}
 
-                <div className="flex flex-col gap-3 pt-2">
+                <div className="flex flex-col gap-3 pt-4">
                   {isOtpStep ? (
                     <div className="grid grid-cols-2 gap-3">
                       <Button
@@ -258,54 +270,62 @@ export function LoginForm() {
                         disabled={isSubmitting || isResending}
                         variant="outline"
                         size="lg"
-                        className="w-full cursor-pointer border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
+                        className="h-12 rounded-lg border border-[#D6DCE8] bg-white text-[#334155]"
                       >
                         <ChevronLeft className="size-4" />
                         Use Different Email
                       </Button>
+
                       <Button
                         type="submit"
                         disabled={isSubmitting || isResending}
                         size="lg"
-                        className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
+                        className="h-12 rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
                       >
                         {isSubmitting ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
-                          "Verify code"
+                          "Verify Code"
                         )}
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting || isResending}
-                      size="lg"
-                      className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
-                    >
-                      {isSubmitting ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        "Send Code"
-                      )}
-                    </Button>
+                    <div className="flex justify-center">
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || isResending}
+                        size="lg"
+                        className="h-12 w-[180px] rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Send Code"
+                        )}
+                      </Button>
+                    </div>
                   )}
                 </div>
               </FieldGroup>
             </form>
           </FormBody>
+
           <FormFooter step={isOtpStep ? 2 : 1} totalSteps={2}>
             {isEmailStep && (
               <p className="text-center text-xs text-[#64748B]">
-                Don&apos;t have an account ?{" "}
-                <Link href="/auth/register" className="text-blue-400 font-bold">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/auth/register"
+                  className="font-semibold text-[#2F66EA]"
+                >
                   Sign Up
                 </Link>
               </p>
             )}
+
             {isOtpStep && (
               <p className="text-center text-xs text-[#64748B]">
-                Didn&apos;t receive a code ?{" "}
+                Didn&apos;t receive a code?{" "}
                 <Button
                   type="button"
                   onClick={handleResendOtp}
@@ -315,7 +335,7 @@ export function LoginForm() {
                     !submittedEmail.trim() ||
                     remaining !== null
                   }
-                  className="text-blue-400 font-bold bg-transparent border-0 p-0 text-xs"
+                  className="border-0 bg-transparent p-0 text-xs font-semibold text-[#2F66EA]"
                 >
                   Resend code {remaining !== null ? `in ${formatted}` : "now"}
                 </Button>
@@ -323,7 +343,18 @@ export function LoginForm() {
             )}
           </FormFooter>
         </FormContainer>
+
+        <div className="hidden lg:flex w-[100%] items-center justify-center">
+          <StepImage
+            width={35000}
+            height={3000}
+            src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login1.png"}
+            alt="ManeJo authentication"
+            className="h-auto w-full max-w-[800px] object-contain"
+          />
+        </div>
       </div>
-    </main>
-  );
+    </div>
+  </main>
+);
 }
