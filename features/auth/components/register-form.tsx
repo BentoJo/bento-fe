@@ -163,31 +163,34 @@ export function RegisterForm() {
   );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#020617]">
-      <div className="relative mx-auto flex h-fit w-full max-w-7xl items-center justify-center flex-row-reverse gap-8 lg:gap-10">
-        <div className="absolute inset-y-0 right-0 z-0 w-9/12 rounded-2xl bg-[#0F172A]" />
-        <StepImage
-          width={2000}
-          height={2000}
-          src={isOtpStep ? "/auth/enter-otp.png" : "/auth/register.png"}
-          alt="ManeJo registration"
-          className="max-w-3/5 z-10"
-        />
-        <FormContainer className="relative z-10">
-          <FormHeader
-            title={isOtpStep ? <>Check your Email</> : <>Create Your Account</>}
-            subtitle={
-              isOtpStep ? (
-                <>Enter the 6-digit code we sent to you</>
-              ) : (
-                <>Let&apos;s get you started</>
-              )
-            }
+    <main className="flex min-h-screen items-center justify-center bg-[#EEF2F8]">
+    <div className="w-full max-w-[1500px] rounded-[32px] border border-[#E4EAF5] bg-[#F5F7FC] p-6 lg:p-10">
+  <div className="flex flex-col-reverse lg:flex-row-reverse items-center justify-between gap-10">        
+<div className="hidden lg:flex w-[90%] items-center justify-center">
+  <StepImage
+    width={3000}
+    height={3000}
+    src={isOtpStep ? "/auth/enter-otp.png" : "/auth/register-new.png"}
+    alt="ManeJo registration"
+    className="h-auto w-full max-w-[800px] object-contain"
+  />
+</div>
+<FormContainer className="w-full max-w-[520px] rounded-[24px] bg-white border-[#E4EAF5] px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+            <FormHeader
+            title={
+  isOtpStep ? (
+    <>Check your Email</>
+  ) : (
+    <div className="text-[#0F172A]">
+      Create Your Account
+    </div>
+  )
+}
           />
           <FormBody>
             <form onSubmit={onSubmit} className="w-full">
-              <FieldGroup className="gap-6 text-white">
-                {isEmailStep && (
+              <FieldGroup className="gap-6">
+                  {isEmailStep && (
                   <>
                     <div className="flex items-center gap-4">
                       <Controller
@@ -195,12 +198,12 @@ export function RegisterForm() {
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="firstName">
-                              First Name :
+                            <FieldLabel htmlFor="firstName"  className="mb-2 text-sm font-medium text-[#1E293B]">
+                              First Name
                             </FieldLabel>
-                            <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                            <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
                               <InputGroupAddon align="inline-start">
-                                <User className="size-4" />
+                               <User className="size-4 text-[#94A3B8]" />
                               </InputGroupAddon>
                               <InputGroupInput
                                 {...field}
@@ -209,7 +212,7 @@ export function RegisterForm() {
                                 placeholder="First Name"
                                 autoComplete="given-name"
                                 aria-invalid={fieldState.invalid}
-                                className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                                  className="text-[#334155] placeholder:text-[#94A3B8]"
                               />
                             </InputGroup>
                             <FieldError errors={[fieldState.error]} />
@@ -221,12 +224,12 @@ export function RegisterForm() {
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="lastName">
-                              Last Name :
+                            <FieldLabel htmlFor="lastName"  className="mb-2 text-sm font-medium text-[#1E293B]">
+                              Last Name
                             </FieldLabel>
-                            <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                            <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
                               <InputGroupAddon align="inline-start">
-                                <User className="size-4" />
+                               <User className="size-4 text-[#94A3B8]" />
                               </InputGroupAddon>
                               <InputGroupInput
                                 {...field}
@@ -235,7 +238,7 @@ export function RegisterForm() {
                                 placeholder="Last Name"
                                 autoComplete="family-name"
                                 aria-invalid={fieldState.invalid}
-                                className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
+                                  className="text-[#334155] placeholder:text-[#94A3B8]" 
                               />
                             </InputGroup>
                             <FieldError errors={[fieldState.error]} />
@@ -248,10 +251,10 @@ export function RegisterForm() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor="email">Email :</FieldLabel>
-                          <InputGroup className="w-full bg-[#1E293B] border-0 rounded-sm py-5 px-2">
+                          <FieldLabel htmlFor="email"  className="mb-2 text-sm font-medium text-[#1E293B]">Email</FieldLabel>
+                          <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
                             <InputGroupAddon align="inline-start">
-                              <Mail className="size-4" />
+                             <Mail className="size-4 text-[#94A3B8]" />
                             </InputGroupAddon>
                             <InputGroupInput
                               {...field}
@@ -260,8 +263,8 @@ export function RegisterForm() {
                               placeholder="Enter your email"
                               autoComplete="email"
                               aria-invalid={fieldState.invalid}
-                              className="[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
-                            />
+                              className="text-[#334155] placeholder:text-[#94A3B8]"          
+                                                />
                           </InputGroup>
                           <FieldError errors={[fieldState.error]} />
                         </Field>
@@ -277,7 +280,7 @@ export function RegisterForm() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor="otp">Enter Code :</FieldLabel>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 bg-white">
                           <OtpSlots
                             value={field.value}
                             onChange={field.onChange}
@@ -325,11 +328,12 @@ export function RegisterForm() {
                       </Button>
                     </div>
                   ) : (
-                    <Button
+                   
+                     <div className="flex justify-center"> <Button
                       type="submit"
                       disabled={isSubmitting || isResending}
                       size="lg"
-                      className="w-full bg-blue-500 text-white hover:bg-blue-500/85 cursor-pointer"
+                       className="h-12 w-[180px] rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
                     >
                       {isSubmitting ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -337,6 +341,7 @@ export function RegisterForm() {
                         "Send Code"
                       )}
                     </Button>
+                    </div>
                   )}
                 </div>
               </FieldGroup>
@@ -371,6 +376,7 @@ export function RegisterForm() {
             )}
           </FormFooter>
         </FormContainer>
+      </div>
       </div>
     </main>
   );

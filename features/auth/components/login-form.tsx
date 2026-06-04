@@ -348,7 +348,7 @@ return (
           <StepImage
             width={35000}
             height={3000}
-            src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login1.png"}
+            src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login.png"}
             alt="ManeJo authentication"
             className="h-auto w-full max-w-[800px] object-contain"
           />
