@@ -24,7 +24,7 @@ export function OtpSlots({ value, onChange, onBlur, name, disabled }: OtpSlotsPr
       name={name}
       disabled={disabled}
     >
-      <InputOTPGroup className="w-full justify-between gap-1">
+      <InputOTPGroup className="w-full justify-between  gap-1">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <InputOTPSlot key={i} index={i} />
         ))}

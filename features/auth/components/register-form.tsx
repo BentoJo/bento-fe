@@ -175,17 +175,32 @@ export function RegisterForm() {
     className="h-auto w-full max-w-[800px] object-contain"
   />
 </div>
-<FormContainer className="w-full max-w-[520px] rounded-[24px] bg-white border-[#E4EAF5] px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+
+<FormContainer className="w-full max-w-[520px] rounded-[24px] bg-white  border-[#E4EAF5] px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+            {isOtpStep && (
+  <div className="mb-8 flex justify-center">
+    <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#DCE9FF]">
+      <Mail className="h-10 w-10 text-[#2F66EA]" />
+    </div>
+  </div>
+)}
             <FormHeader
             title={
   isOtpStep ? (
-    <>Check your Email</>
+    <div className="text-[#0F172A]"> Check your Email</div>
   ) : (
     <div className="text-[#0F172A]">
       Create Your Account
     </div>
   )
 }
+   subtitle={
+              isOtpStep ? (
+                <>Enter the 6-digit code we sent to you</>
+              ) : (
+                <>Enter your email to continue</>
+              )
+            }
           />
           <FormBody>
             <form onSubmit={onSubmit} className="w-full">
@@ -280,7 +295,7 @@ export function RegisterForm() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor="otp">Enter Code :</FieldLabel>
-                        <div className="flex items-center gap-3 bg-white">
+                        <div className="flex items-center gap-3  bg-white">
                           <OtpSlots
                             value={field.value}
                             onChange={field.onChange}
@@ -309,7 +324,7 @@ export function RegisterForm() {
                         disabled={isSubmitting || isResending}
                         variant="outline"
                         size="lg"
-                        className="w-full cursor-pointer border-[#1E293B] bg-transparent text-white hover:bg-[#0F172A] hover:text-white"
+                        className="w-full cursor-pointer border-[#E2E8F0] bg-transparent text-[#0F172A] hover:bg-white hover:scale-[1.01]"
                       >
                         <ChevronLeft className="size-4" />
                         Use Different Email
@@ -368,7 +383,7 @@ export function RegisterForm() {
                     !submittedEmail.trim() ||
                     remaining !== null
                   }
-                  className="text-blue-400 font-bold bg-transparent border-0 p-0 text-xs"
+                  className="text-[#2563EB] font-bold bg-transparent border-0 p-0 text-xs"
                 >
                   Resend code {remaining !== null ? `in ${formatted}` : "now"}
                 </Button>

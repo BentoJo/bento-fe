@@ -168,10 +168,18 @@ return (
       <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
         
         <FormContainer className="w-full max-w-[520px] h-[700px] rounded-[24px] border-[#E4EAF5] bg-white px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          {isOtpStep && (
+  <div className="mb-8 flex justify-center">
+    <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#DCE9FF]">
+      <Mail className="h-10 w-10 text-[#2F66EA]" />
+    </div>
+  </div>
+)}
+          
           <FormHeader
             title={
               isOtpStep ? (
-                <>Check your Email</>
+                <div className="text-[#0F172A]">Check your Email</div>
               ) : (
                 <div className={`${cairo.className} text-[#0F172A] text-3xl`}>
                   Welcome in Mane
@@ -324,7 +332,7 @@ return (
             )}
 
             {isOtpStep && (
-              <p className="text-center text-xs text-[#64748B]">
+              <p className="text-center text-xs text-[#0F172A]">
                 Didn&apos;t receive a code?{" "}
                 <Button
                   type="button"
