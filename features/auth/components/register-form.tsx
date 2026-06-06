@@ -213,7 +213,7 @@ export function RegisterForm() {
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="firstName"  className="mb-2 text-sm font-medium text-[#1E293B]">
+                            <FieldLabel htmlFor="firstName"  className=" text-sm font-medium text-[#1E293B]">
                               First Name
                             </FieldLabel>
                             <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
@@ -239,7 +239,7 @@ export function RegisterForm() {
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="lastName"  className="mb-2 text-sm font-medium text-[#1E293B]">
+                            <FieldLabel htmlFor="lastName"  className=" text-sm font-medium text-[#1E293B]">
                               Last Name
                             </FieldLabel>
                             <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
@@ -266,7 +266,7 @@ export function RegisterForm() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor="email"  className="mb-2 text-sm font-medium text-[#1E293B]">Email</FieldLabel>
+                          <FieldLabel htmlFor="email"  className=" text-sm font-medium text-[#1E293B]">Email</FieldLabel>
                           <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
                             <InputGroupAddon align="inline-start">
                              <Mail className="size-4 text-[#94A3B8]" />

@@ -2,117 +2,303 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  LayoutGrid,
-  Calendar,
-  BarChart3,
-  Users,
-  Archive,
-  ScrollText,
-  Settings,
-  CircleHelp,
-} from "lucide-react";
-import { BrandLogo } from "@/shared/layout/brand-logo";
-import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { cn } from "@/shared/lib/utils";
-
-interface WorkspaceSidebarProps {
-  workspaceId: string;
-}
+import { BrandLogo } from "@/shared/layout/brand-logo";
+import { useLogout } from "@/features/auth/hooks/use-logout";
+import Close_arrow from "../components/svgs/Close-Arrow";
+import Home from "../components/svgs/Home";
+import Board from "../components/svgs/Board";
+import Calendar from "../components/svgs/Calendar";
+import Analytics from "../components/svgs/Analytics";
+import Users from "../components/svgs/Users";
+import Archive from "../components/svgs/Archive";
+import Audit from "../components/svgs/Audit";
+import Shield from "../components/svgs/Sheild";
+import Settings from "../components/svgs/Settings";
+import Report from "../components/svgs/Report";
+import { cairo } from "../lib/fonts";
+import Dropdown_List from "../components/svgs/Dropdown_List";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  /** match exact pathname for the root nav item to avoid always-active */
-  exact?: boolean;
+  match: string[];
+  section?: "workspace" | "admin" | "bottom";
 }
 
-export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Home",
+    href: "/home",
+    icon: Home,
+    match: ["/home"],
+    section: "workspace",
+  },
+  {
+    label: "Board",
+    href: "/board",
+    icon: Board,
+    match: ["/board"],
+    section: "workspace",
+  },
+  {
+    label: "Calendar",
+    href: "/calendar",
+    icon: Calendar,
+    match: ["/calendar"],
+    section: "workspace",
+  },
+  {
+    label: "Analytics",
+    href: "/analytics",
+    icon: Analytics,
+    match: ["/analytics"],
+    section: "admin",
+  },
+  {
+    label: "Users",
+    href: "/users",
+    icon: Users,
+    match: ["/users"],
+    section: "admin",
+  },
+  {
+    label: "Archive",
+    href: "/archive",
+    icon: Archive,
+    match: ["/archive"],
+    section: "admin",
+  },
+  {
+    label: "Auditing Log",
+    href: "/audit-log",
+    icon: Audit,
+    match: ["/audit-log"],
+    section: "admin",
+  },
+  {
+    label: "Report Problem",
+    href: "/report-problem",
+    icon: Report,
+    match: ["/#"],
+    section: "bottom",
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: Settings,
+    match: ["/settings"],
+    section: "bottom",
+  },
+];
+
+
+const bottomItems = NAV_ITEMS.filter(
+  (item) => item.section === "bottom",
+);
+
+
+export function GlobalSidebar() {
   const pathname = usePathname();
-  const base = `/w/${workspaceId}`;
+  const { logout, isLoggingOut } = useLogout();
 
-  const workspaceNav: NavItem[] = [
-    { label: "Home", href: base, icon: Home, exact: true },
-    { label: "Boards", href: `${base}/boards`, icon: LayoutGrid },
-    { label: "Calendar", href: `${base}/calendar`, icon: Calendar },
-  ];
-
-  const adminNav: NavItem[] = [
-    { label: "Analytics", href: `${base}/analytics`, icon: BarChart3 },
-    { label: "Users", href: `${base}/users`, icon: Users },
-    { label: "Archive", href: `${base}/archive`, icon: Archive },
-    { label: "Auditing Log", href: `${base}/auditing-log`, icon: ScrollText },
-  ];
-
-  const bottomNav: NavItem[] = [
-    { label: "Report Problem", href: `${base}/report-problem`, icon: CircleHelp },
-    { label: "Settings", href: `${base}/settings`, icon: Settings },
-  ];
-
-  const isActive = (item: NavItem) =>
-    item.exact
-      ? pathname === item.href
-      : pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-  return (
-    <aside className="flex h-full w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center px-4 py-5">
-        <BrandLogo />
-      </div>
-
-      {/* Workspace switcher — lists the user's workspaces and switches between them. */}
-      <div className="px-3">
-        <WorkspaceSwitcher workspaceId={workspaceId} />
-      </div>
-
-      <nav className="mt-6 flex flex-1 flex-col px-3">
-        <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-wide text-sidebar-foreground/40">
-          Workspace
-        </p>
-        <ul className="flex flex-col gap-1">
-          {workspaceNav.map((item) => (
-            <NavLink key={item.label} item={item} active={isActive(item)} />
-          ))}
-        </ul>
-
-        <p className="px-3 pb-2 pt-6 text-[10px] font-medium uppercase tracking-wide text-sidebar-foreground/40">
-          Admin
-        </p>
-        <ul className="flex flex-col gap-1">
-          {adminNav.map((item) => (
-            <NavLink key={item.label} item={item} active={isActive(item)} />
-          ))}
-        </ul>
-
-        <div className="mt-auto flex flex-col gap-1 pb-4">
-          {bottomNav.map((item) => (
-            <NavLink key={item.label} item={item} active={isActive(item)} />
-          ))}
-        </div>
-      </nav>
-    </aside>
+  const workspaceItems = NAV_ITEMS.filter(
+    (item) => item.section === "workspace",
   );
-}
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
-  const Icon = item.icon;
+  const adminItems = NAV_ITEMS.filter(
+    (item) => item.section === "admin",
+  );
+
   return (
-    <li>
-      <Link
-        href={item.href}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          active
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
-        )}
-        aria-current={active ? "page" : undefined}
-      >
-        <Icon className="size-4 shrink-0" />
-        {item.label}
-      </Link>
-    </li>
+    <aside className="flex h-[calc(100vh - 16px)] w-[280px] shrink-0 flex-col m-3 rounded-[16px] bg-[#010D1E] px-6 py-4 text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between mt-2">
+        <BrandLogo width={150} height={37} />
+
+        <button className="rounded-lg p-2 transition hover:bg-white/5">
+          <Close_arrow />
+        </button>
+      </div>
+
+      {/* Workspace Selector */}
+      <div className="mt-10">
+        <button className="flex w-full items-center justify-between rounded-[8px] border border-[#1E293B] bg-[#0F172A] px-4 py-3 text-sm  font-medium">
+          <div className="flex items-center gap-2">
+            <span>📦</span>
+            <span className={`${cairo.className} text-[16px] font-semibold`}>Bento</span>
+          </div>
+
+          <Dropdown_List className="size-4" />
+        </button>
+      </div>
+
+      {/* Role */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between text-sm text-[#94A3B8]">
+          <span>Your Role :</span>
+
+          <div className="flex items-center gap-2">
+            <Shield width={16} height={16} />
+            <span>Admin</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Workspace Section */}
+      <div className="mt-8">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="text-sm font-medium text-[#94A3B8]">
+            Workspace
+          </span>
+
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <nav className="space-y-3">
+          {workspaceItems.map((item) => {
+            const isActive = item.match.some(
+              (m) => pathname === m || pathname.startsWith(`${m}/`),
+            );
+
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.label}
+                className="flex items-center"
+              >
+                {/* Active Indicator */}
+                <div className="flex w-4 justify-center">
+                  {isActive && (
+                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
+                  )}
+                </div>
+
+                {/* Navigation Item */}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
+                    isActive
+                      ? "bg-[#3B82F6]/10 text-white"
+                      : "text-white/80 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Icon className="size-7 shrink-0" />
+
+                  <span
+                    className={`${cairo.className} text-[16px] font-semibold`}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Admin Section */}
+      <div className="mt-8">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="text-sm font-medium text-[#94A3B8]">
+            Admin
+          </span>
+
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <nav className="space-y-3">
+          {adminItems.map((item) => {
+            const isActive = item.match.some(
+              (m) => pathname === m || pathname.startsWith(`${m}/`),
+            );
+
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.label}
+                className="flex items-center"
+              >
+                {/* Active Indicator */}
+                <div className="flex w-4 justify-center">
+                  {isActive && (
+                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
+                  )}
+                </div>
+
+                {/* Navigation Item */}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
+                    isActive
+                      ? "bg-[#3B82F6]/10 text-white"
+                      : "text-white/80 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Icon className="size-7 shrink-0" />
+
+                  <span
+                    className={`${cairo.className} text-[16px] font-semibold`}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Bottom Actions */}
+      <div className="mt-auto pt-6">
+        <nav className="space-y-3">
+          {bottomItems.map((item) => {
+            const Icon = item.icon;
+
+            const isActive = item.match.some(
+              (m) => pathname === m || pathname.startsWith(`${m}/`),
+            );
+
+            return (
+              <div
+                key={item.label}
+                className="flex items-center"
+              >
+                <div className="flex w-4 justify-center">
+                  {isActive && (
+                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
+                  )}
+                </div>
+
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
+                    isActive
+                      ? "bg-[#3B82F6]/10 text-white"
+                      : "text-white/80 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" />
+
+                  <span
+                    className={`${cairo.className} text-[16px] font-semibold`}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+
+
+      </div>
+    </aside>
   );
 }

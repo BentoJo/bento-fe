@@ -61,7 +61,6 @@ export function GlobalSidebar() {
         })}
       </nav>
 
-      {/* Logout pinned to the bottom of the sidebar. */}
       <div className="mt-auto border-t border-sidebar-border/60 p-3">
         <button
           type="button"

@@ -61,6 +61,7 @@
   --color-warning: var(--warning);
 }
 
+
 :root {
   /* ManeJo brand (blue) — #EFF6FF #DBEAFE #60A5FA #3B82F6 #2563EB */
   --brand-50: oklch(0.97 0.014 254.6);
@@ -111,7 +112,6 @@
   --sidebar-border: oklch(0.279 0.041 260.0);
   --sidebar-ring: oklch(0.623 0.214 259.8);
 }
-
 
 
 .dark {

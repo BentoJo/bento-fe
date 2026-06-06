@@ -15,13 +15,13 @@ interface BrandLogoProps {
  */
 export function BrandLogo({
   className,
-  width = 132,
-  height = 36,
+  width = 150,
+  height = 37,
   alt = "ManeJo",
 }: BrandLogoProps) {
   return (
     <Image
-      src="/logo.svg"
+      src="/logo-light.svg"
       alt={alt}
       width={width}
       height={height}
