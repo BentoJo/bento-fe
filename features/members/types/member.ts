@@ -1,12 +1,14 @@
 /**
  * Workspace members & invites — feature-local types.
  *
- * BACKEND REALITY: the member list returns ONLY { id, userId, authzRoleId, joinedAt }.
- * There is NO name / email / phone / job-field / avatar on a member record.
- * Do NOT fabricate those fields anywhere in the UI.
- * TODO(BE): enrich the member list with IAM user profile data
- * (display name, email, phone, job field, avatar).
+ * The gateway enriches each member with the IAM user profile (`user`) when it
+ * can resolve it. It may still be absent if the IAM lookup degraded, so treat
+ * `user` as optional and fall back via the `userFullName`/`userInitials` helpers.
  */
+
+import type { UserSummary } from "@/shared/types/workspace";
+
+export type { UserSummary };
 
 export interface PaginationMeta {
   page: number;
@@ -21,6 +23,8 @@ export interface WorkspaceMember {
   userId: string;
   authzRoleId: string;
   joinedAt: string;
+  /** IAM profile, embedded by the gateway when resolvable. */
+  user?: UserSummary | null;
 }
 
 export interface ListMembersRequest {

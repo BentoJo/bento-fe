@@ -3,9 +3,9 @@
  * Base: /v1/workspace/{workspaceId}/teams. Keep in sync with the gateway.
  */
 
-import type { PaginationMeta } from "@/shared/types/workspace";
+import type { PaginationMeta, UserSummary } from "@/shared/types/workspace";
 
-export type { PaginationMeta };
+export type { PaginationMeta, UserSummary };
 
 /** A team row as returned by the list endpoint. */
 export interface TeamListItem {
@@ -53,12 +53,11 @@ export interface UpdateTeamRequest {
 }
 
 /**
- * A team member row. The backend currently returns only `userId`.
- * TODO(BE): enrich with IAM profile (name, email, avatar) so the UI can
- * show real member identities instead of opaque user ids.
+ * A team member row. The gateway enriches each member with the IAM user
+ * profile (`user`), so the UI shows real identities instead of opaque ids.
  */
 export interface TeamMember {
-  userId: string;
+  user: UserSummary;
   joinedAt: string;
 }
 
@@ -69,6 +68,14 @@ export interface ListTeamMembersResponse {
 
 export interface AddTeamMemberRequest {
   workspaceMemberId: string;
+}
+
+/** Response from POST .../members — the added member, enriched with `user`. */
+export interface AddTeamMemberResponse {
+  id: string;
+  teamId: string;
+  user: UserSummary;
+  joinedAt: string;
 }
 
 export interface BulkAddTeamMembersRequest {

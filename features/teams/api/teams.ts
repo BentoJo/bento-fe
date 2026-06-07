@@ -3,11 +3,11 @@ import { getErrorMessage } from "@/shared/types/api/errors";
 import type { ApiEnvelope } from "@/shared/types/api/response";
 import type {
   AddTeamMemberRequest,
+  AddTeamMemberResponse,
   CreateTeamRequest,
   ListTeamMembersResponse,
   ListTeamsRequest,
   ListTeamsResponse,
-  TeamMember,
   TeamResponse,
   UpdateTeamRequest,
 } from "@/features/teams/types/team";
@@ -153,9 +153,9 @@ export async function addTeamMember(
   workspaceId: string,
   teamId: string,
   body: AddTeamMemberRequest,
-): Promise<TeamMember> {
+): Promise<AddTeamMemberResponse> {
   try {
-    const res = await getClientAxios().post<ApiEnvelope<TeamMember>>(
+    const res = await getClientAxios().post<ApiEnvelope<AddTeamMemberResponse>>(
       `${teamsPath(workspaceId)}/${teamId}/members`,
       body,
     );

@@ -22,7 +22,9 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from "@/shared/components/ui/avatar";
+import { userFullName, userInitials } from "@/shared/lib/user";
 import { useMembers } from "@/features/members/hooks/use-members";
 import { InviteUserDialog } from "@/features/members/components/invite-user-dialog";
 import { MemberRowActions } from "@/features/members/components/member-row-actions";
@@ -301,27 +303,29 @@ function MemberRow({
   const joined = member.joinedAt
     ? new Date(member.joinedAt).toLocaleDateString()
     : "—";
-  const shortId =
-    member.userId.length > 12
-      ? `${member.userId.slice(0, 8)}…${member.userId.slice(-4)}`
-      : member.userId;
-  const initials = member.userId.slice(0, 2).toUpperCase();
+  // Fall back to the bare userId if the gateway couldn't resolve the profile.
+  const profile = member.user ?? { id: member.userId };
+  const displayName = userFullName(profile);
+  const email = member.user?.email ?? "—";
 
   return (
     <div className="grid grid-cols-[1.6fr_1fr_1fr_1.4fr_0.8fr_1fr] items-center gap-3 border-b border-border px-4 py-3 text-sm last:border-b-0 hover:bg-muted/40">
-      {/* Profile: generic avatar + truncated userId.
-          TODO(BE): needs IAM user profile enrichment on member list
-          (no name/email/phone/job-field/avatar available today). */}
+      {/* Profile: real IAM identity (name + email + avatar). */}
       <div className="flex items-center gap-3">
         <Avatar className="size-9">
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          {member.user?.avatarUrl && (
+            <AvatarImage src={member.user.avatarUrl} alt={displayName} />
+          )}
+          <AvatarFallback className="text-xs">
+            {userInitials(profile)}
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
           <p
-            className="truncate font-mono text-xs font-medium text-foreground"
-            title={member.userId}
+            className="truncate text-sm font-medium text-foreground"
+            title={displayName}
           >
-            {shortId}
+            {displayName}
           </p>
           <p className="text-xs text-muted-foreground">Joined {joined}</p>
         </div>
@@ -331,8 +335,10 @@ function MemberRow({
       <span className="text-muted-foreground">—</span>
       {/* Phone — not available on member record */}
       <span className="text-muted-foreground">—</span>
-      {/* Contact — not available on member record */}
-      <span className="text-muted-foreground">—</span>
+      {/* Contact: email when the profile resolved */}
+      <span className="truncate text-muted-foreground" title={email}>
+        {email}
+      </span>
 
       {/* Role */}
       <div>

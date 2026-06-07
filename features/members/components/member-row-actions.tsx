@@ -29,6 +29,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { removeMember, updateMemberRole } from "@/features/members/api/members";
 import type { WorkspaceMember } from "@/features/members/types/member";
+import { userFullName } from "@/shared/lib/user";
 import type { WorkspaceRole } from "@/features/roles/types/role";
 
 interface MemberRowActionsProps {
@@ -152,12 +153,16 @@ export function MemberRowActions({
           <DialogHeader>
             <DialogTitle>Member details</DialogTitle>
             <DialogDescription>
-              Profile enrichment is not yet available on the member record.
+              {userFullName(member.user ?? { id: member.userId })}
             </DialogDescription>
           </DialogHeader>
-          {/* TODO(BE): needs IAM user profile enrichment on member list
-              (display name, email, phone, job field, avatar). */}
           <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
+            <dt className="text-muted-foreground">Name</dt>
+            <dd className="truncate">
+              {userFullName(member.user ?? { id: member.userId })}
+            </dd>
+            <dt className="text-muted-foreground">Email</dt>
+            <dd className="truncate">{member.user?.email ?? "—"}</dd>
             <dt className="text-muted-foreground">User ID</dt>
             <dd className="truncate font-mono text-xs">{member.userId}</dd>
             <dt className="text-muted-foreground">Role</dt>

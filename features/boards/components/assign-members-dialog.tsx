@@ -20,8 +20,10 @@ import { Input } from "@/shared/components/ui/input";
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { userFullName, userInitials } from "@/shared/lib/user";
 
 interface AssignMembersDialogProps {
   workspaceId: string;
@@ -88,8 +90,26 @@ export function AssignMembersDialog({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return members;
-    return members.filter((m) => m.userId.toLowerCase().includes(q));
+    return members.filter((m) => {
+      const haystack = [
+        userFullName(m.user ?? { id: m.userId }),
+        m.user?.email ?? "",
+        m.userId,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
   }, [members, search]);
+
+  // userId -> display name, for the selected chips.
+  const nameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of members) {
+      map.set(m.userId, userFullName(m.user ?? { id: m.userId }));
+    }
+    return map;
+  }, [members]);
 
   const toggle = (userId: string) =>
     setPicked((prev) =>
@@ -145,11 +165,11 @@ export function AssignMembersDialog({
                     key={id}
                     className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs text-foreground"
                   >
-                    {id.slice(0, 8)}
+                    {nameById.get(id) ?? id.slice(0, 8)}
                     <button
                       type="button"
                       onClick={() => toggle(id)}
-                      aria-label={`Remove ${id}`}
+                      aria-label={`Remove ${nameById.get(id) ?? id}`}
                     >
                       <X className="size-3" />
                     </button>
@@ -182,14 +202,27 @@ export function AssignMembersDialog({
                           onClick={() => toggle(m.userId)}
                           className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted"
                         >
-                          <span className="flex items-center gap-2">
+                          <span className="flex min-w-0 items-center gap-2">
                             <Avatar className="size-7">
+                              {m.user?.avatarUrl && (
+                                <AvatarImage
+                                  src={m.user.avatarUrl}
+                                  alt={userFullName(m.user)}
+                                />
+                              )}
                               <AvatarFallback className="text-[10px]">
-                                {m.userId.slice(0, 2).toUpperCase()}
+                                {userInitials(m.user ?? { id: m.userId })}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm text-foreground">
-                              {m.userId.slice(0, 12)}
+                            <span className="flex min-w-0 flex-col">
+                              <span className="truncate text-sm text-foreground">
+                                {userFullName(m.user ?? { id: m.userId })}
+                              </span>
+                              {m.user?.email && (
+                                <span className="truncate text-xs text-muted-foreground">
+                                  {m.user.email}
+                                </span>
+                              )}
                             </span>
                           </span>
                           <span

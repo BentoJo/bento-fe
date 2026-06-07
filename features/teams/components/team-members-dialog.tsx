@@ -24,8 +24,10 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { userFullName, userInitials } from "@/shared/lib/user";
 
 interface TeamMembersDialogProps {
   workspaceId: string;
@@ -186,26 +188,27 @@ export function TeamMembersDialog({
               <ul className="divide-y divide-border">
                 {members.map((m) => (
                   <li
-                    key={m.userId}
+                    key={m.user.id}
                     className="flex items-center justify-between gap-3 p-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar className="size-9">
-                        <AvatarFallback>
-                          {m.userId.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
+                        {m.user.avatarUrl && (
+                          <AvatarImage
+                            src={m.user.avatarUrl}
+                            alt={userFullName(m.user)}
+                          />
+                        )}
+                        <AvatarFallback>{userInitials(m.user)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        {/* TODO(BE): backend returns only userId — enrich with
-                            IAM profile (name/email/avatar) to show real identity. */}
-                        <p className="truncate font-mono text-sm text-foreground">
-                          {m.userId}
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {userFullName(m.user)}
                         </p>
-                        {m.joinedAt && (
-                          <p className="text-xs text-muted-foreground">
-                            Joined {formatDate(m.joinedAt)}
-                          </p>
-                        )}
+                        <p className="truncate text-xs text-muted-foreground">
+                          {m.user.email}
+                          {m.joinedAt ? ` · Joined ${formatDate(m.joinedAt)}` : ""}
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -213,11 +216,11 @@ export function TeamMembersDialog({
                       variant="ghost"
                       size="icon-sm"
                       aria-label="Remove member"
-                      onClick={() => void handleRemove(m.userId)}
-                      disabled={removingId === m.userId}
+                      onClick={() => void handleRemove(m.user.id)}
+                      disabled={removingId === m.user.id}
                       className="shrink-0 text-muted-foreground hover:text-destructive"
                     >
-                      {removingId === m.userId ? (
+                      {removingId === m.user.id ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <Trash2 className="size-4" />

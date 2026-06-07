@@ -57,6 +57,19 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+/**
+ * Minimal user identity the gateway now embeds on member records
+ * (team members, board members, workspace members). Mirrors the gateway's
+ * `UserSummary`. avatarUrl may be null/absent.
+ */
+export interface UserSummary {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
+}
+
 export interface ListUserWorkspacesResponse {
   workspaces: WorkspaceListItem[];
   pagination: PaginationMeta;
