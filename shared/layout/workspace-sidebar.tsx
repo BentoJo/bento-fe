@@ -16,6 +16,7 @@ import Audit from "../components/svgs/Audit";
 import Settings from "../components/svgs/Settings";
 import Report from "../components/svgs/Report";
 import Shield from "../components/svgs/Sheild";
+import { cairo } from "../lib/fonts";
 
 interface WorkspaceSidebarProps {
   workspaceId: string;
@@ -86,10 +87,10 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
       </div>
 
       {/* ── Nav ── */}
-      <nav className="flex flex-1 flex-col px-4 mt-2 gap-2 overflow-y-auto">
+      <nav className={` ${cairo.className} flex flex-1 flex-col px-4 mt-2 gap-2 overflow-y-auto `}>
 
         {/* Workspace section */}
-        <SectionLabel label="Workspace" />
+        <SectionLabel label="Workspace " />
         <ul className="space-y-0.5 mb-4">
           {workspaceNav.map((item) => (
             <NavLink key={item.label} item={item} active={isActive(item)} />
@@ -133,7 +134,7 @@ function SectionLabel({ label }: { label: string }) {
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
   return (
-    <li className="flex items-center gap-2">
+    <li className={`flex items-center gap-2 ${cairo.className}`}>
       {/* Left blue indicator bar */}
       <div className="w-[3px] flex-shrink-0 flex items-center justify-center" style={{ height: 40 }}>
         {active && (
@@ -147,7 +148,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       <Link
         href={item.href}
         className={cn(
-          "flex flex-1 items-center gap-3 rounded-[8px] px-3 transition-all duration-150",
+          "flex flex-1 items-center gap-3 ${cairo.className} rounded-[8px] px-3 transition-all duration-150",
           "h-[40px]",
           active
             ? "bg-[#3B82F6]/10 text-white"

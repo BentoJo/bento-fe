@@ -162,207 +162,207 @@ export function LoginForm() {
   const onSubmit = handleSubmit(
     isOtpStep ? handleOtpSubmit : handleLoginSubmit,
   );
-return (
-  <main className="min-h-screen bg-[#EEF2F8] p-6 lg:p-8 flex items-center justify-center">
-    <div className="w-full max-w-[1500px] rounded-[32px] border border-[#E4EAF5] bg-[#F5F7FC] p-6 lg:p-10 ">
-      <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
-        
-        <FormContainer className="w-full max-w-[520px] h-[700px] rounded-[24px] border-[#E4EAF5] bg-white px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          {isOtpStep && (
-  <div className="mb-8 flex justify-center">
-    <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#DCE9FF]">
-      <Mail className="h-10 w-10 text-[#2F66EA]" />
-    </div>
-  </div>
-)}
-          
-          <FormHeader
-            title={
-              isOtpStep ? (
-                <div className="text-[#0F172A]">Check your Email</div>
-              ) : (
-                <div className={`${cairo.className} text-[#0F172A] text-3xl`}>
-                  Welcome in Mane
-                  <span className="text-[#2F66EA]">Jo</span>
-                </div>
-              )
-            }
-            subtitle={
-              isOtpStep ? (
-                <>Enter the 6-digit code we sent to you</>
-              ) : (
-                <>Enter your email to continue</>
-              )
-            }
-          />
+  return (
+    <main className="min-h-screen bg-[#EEF2F8] p-6 lg:p-8 flex items-center justify-center">
+      <div className="w-full max-w-[1500px] rounded-[32px] border border-[#E4EAF5] bg-[#F5F7FC] p-6 lg:p-10 ">
+        <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
 
-          <FormBody>
-            <form onSubmit={onSubmit} className="w-full">
-              <FieldGroup className="gap-2">
-                {isEmailStep && (
-                  <Controller
-                    name="email"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel
-                          htmlFor="email"
-                          className=" text-sm font-medium text-[#64748B]"
-                        >
-                          Email
-                        </FieldLabel>
-
-                        <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
-                          <InputGroupAddon align="inline-start">
-                            <Mail className="size-4 text-[#94A3B8]" />
-                          </InputGroupAddon>
-
-                          <InputGroupInput
-                            {...field}
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            autoComplete="email"
-                            aria-invalid={fieldState.invalid}
-                            className="text-[#334155] placeholder:text-[#94A3B8]"
-                          />
-                        </InputGroup>
-
-                        <FieldError errors={[fieldState.error]} />
-                      </Field>
-                    )}
-                  />
-                )}
-
-                {isOtpStep && (
-                  <Controller
-                    name="otp"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel
-                          htmlFor="otp"
-                          className="mb-2 text-sm font-medium text-[#64748B]"
-                        >
-                          Enter Code
-                        </FieldLabel>
-
-                        <div className="flex items-center gap-3">
-                          <OtpSlots
-                            value={field.value}
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            disabled={field.disabled}
-                          />
-                        </div>
-
-                        <FieldError errors={[fieldState.error]} />
-
-                        {otpExpiresIn && (
-                          <FieldDescription>
-                            The latest code expires in {otpExpiresIn}.
-                          </FieldDescription>
-                        )}
-                      </Field>
-                    )}
-                  />
-                )}
-
-                <div className="flex flex-col gap-3 pt-4">
-                  {isOtpStep ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        type="button"
-                        onClick={handleBackToLogin}
-                        disabled={isSubmitting || isResending}
-                        variant="outline"
-                        size="lg"
-                        className="h-12 rounded-lg border border-[#D6DCE8] bg-white text-[#334155]"
-                      >
-                        <ChevronLeft className="size-4" />
-                        Use Different Email
-                      </Button>
-
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting || isResending}
-                        size="lg"
-                        className="h-12 rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          "Verify Code"
-                        )}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center">
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting || isResending}
-                        size="lg"
-                        className="h-12 w-[180px] rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          "Send Code"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </FieldGroup>
-            </form>
-          </FormBody>
-
-          <FormFooter step={isOtpStep ? 2 : 1} totalSteps={2}>
-            {isEmailStep && (
-              <p className="text-center text-xs text-[#64748B]">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/auth/register"
-                  className="font-semibold text-[#2F66EA]"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            )}
-
+          <FormContainer className="w-full max-w-[520px] h-[700px] rounded-[24px] border-[#E4EAF5] bg-white px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
             {isOtpStep && (
-              <p className="text-center text-xs text-[#0F172A]">
-                Didn&apos;t receive a code?{" "}
-                <Button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={
-                    isSubmitting ||
-                    isResending ||
-                    !submittedEmail.trim() ||
-                    remaining !== null
-                  }
-                  className="border-0 bg-transparent p-0 text-xs font-semibold text-[#2F66EA]"
-                >
-                  Resend code {remaining !== null ? `in ${formatted}` : "now"}
-                </Button>
-              </p>
+              <div className="mb-8 flex justify-center">
+                <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#DCE9FF]">
+                  <Mail className="h-10 w-10 text-[#2F66EA]" />
+                </div>
+              </div>
             )}
-          </FormFooter>
-        </FormContainer>
 
-        <div className="hidden lg:flex w-[100%] items-center justify-center">
-          <StepImage
-            width={35000}
-            height={3000}
-            src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login.png"}
-            alt="ManeJo authentication"
-            className="h-auto w-full max-w-[800px] object-contain"
-          />
+            <FormHeader
+              title={
+                isOtpStep ? (
+                  <div className="text-[#0F172A]">Check your Email</div>
+                ) : (
+                  <div className={`${cairo.className} text-[#0F172A] text-3xl`}>
+                    Welcome in Mane
+                    <span className="text-[#2F66EA]">Jo</span>
+                  </div>
+                )
+              }
+              subtitle={
+                isOtpStep ? (
+                  <>Enter the 6-digit code we sent to you</>
+                ) : (
+                  <>Enter your email to continue</>
+                )
+              }
+            />
+
+            <FormBody>
+              <form onSubmit={onSubmit} className="w-full">
+                <FieldGroup className="gap-2">
+                  {isEmailStep && (
+                    <Controller
+                      name="email"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel
+                            htmlFor="email"
+                            className=" text-sm font-medium text-[#64748B]"
+                          >
+                            Email
+                          </FieldLabel>
+
+                          <InputGroup className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-5 shadow-none">
+                            <InputGroupAddon align="inline-start">
+                              <Mail className="size-4 text-[#94A3B8]" />
+                            </InputGroupAddon>
+
+                            <InputGroupInput
+                              {...field}
+                              id="email"
+                              type="email"
+                              placeholder="Enter your email"
+                              autoComplete="email"
+                              aria-invalid={fieldState.invalid}
+                              className="text-[#334155] placeholder:text-[#94A3B8]"
+                            />
+                          </InputGroup>
+
+                          <FieldError errors={[fieldState.error]} />
+                        </Field>
+                      )}
+                    />
+                  )}
+
+                  {isOtpStep && (
+                    <Controller
+                      name="otp"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel
+                            htmlFor="otp"
+                            className="mb-2 text-sm font-medium text-[#64748B]"
+                          >
+                            Enter Code
+                          </FieldLabel>
+
+                          <div className="flex items-center gap-3">
+                            <OtpSlots
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              disabled={field.disabled}
+                            />
+                          </div>
+
+                          <FieldError errors={[fieldState.error]} />
+
+                          {otpExpiresIn && (
+                            <FieldDescription>
+                              The latest code expires in {otpExpiresIn}.
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      )}
+                    />
+                  )}
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    {isOtpStep ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          type="button"
+                          onClick={handleBackToLogin}
+                          disabled={isSubmitting || isResending}
+                          variant="outline"
+                          size="lg"
+                          className="h-12 rounded-lg border border-[#D6DCE8] bg-white text-[#334155]"
+                        >
+                          <ChevronLeft className="size-4" />
+                          Use Different Email
+                        </Button>
+
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting || isResending}
+                          size="lg"
+                          className="h-12 rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
+                        >
+                          {isSubmitting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Verify Code"
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting || isResending}
+                          size="lg"
+                          className="h-12 w-[180px] rounded-lg bg-[#2F66EA] text-white hover:bg-[#2458D8]"
+                        >
+                          {isSubmitting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Send Code"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </FieldGroup>
+              </form>
+            </FormBody>
+
+            <FormFooter step={isOtpStep ? 2 : 1} totalSteps={2}>
+              {isEmailStep && (
+                <p className="text-center text-xs text-[#64748B]">
+                  Don&apos;t have an account?{" "}
+                  <Link
+                    href="/auth/register"
+                    className="font-semibold text-[#2F66EA]"
+                  >
+                    Sign Up
+                  </Link>
+                </p>
+              )}
+
+              {isOtpStep && (
+                <p className="text-center text-xs text-[#0F172A]">
+                  Didn&apos;t receive a code?{" "}
+                  <Button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={
+                      isSubmitting ||
+                      isResending ||
+                      !submittedEmail.trim() ||
+                      remaining !== null
+                    }
+                    className="border-0 bg-transparent p-0 text-xs font-semibold text-[#2F66EA]"
+                  >
+                    Resend code {remaining !== null ? `in ${formatted}` : "now"}
+                  </Button>
+                </p>
+              )}
+            </FormFooter>
+          </FormContainer>
+
+          <div className="hidden lg:flex w-[100%] items-center justify-center">
+            <StepImage
+              width={35000}
+              height={3000}
+              src={isOtpStep ? "/auth/enter-otp.png" : "/auth/login.png"}
+              alt="ManeJo authentication"
+              className="h-auto w-full max-w-[800px] object-contain"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </main>
-);
+    </main>
+  );
 }

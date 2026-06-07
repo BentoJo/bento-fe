@@ -26,6 +26,12 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { OverviewStats } from "@/features/workspace/components/overview-stats";
 import { BoardsPreview } from "@/features/workspace/components/boards-preview";
 import { useWorkspaceOverview } from "@/features/workspace/hooks/use-workspace-overview";
+import { cairo } from "@/shared/lib/fonts";
+import Switch from "@/shared/components/svgs/Switch";
+import { Cairo } from "next/font/google";
+import Edit from "@/shared/components/svgs/Edit";
+import Dashboard from "@/shared/components/svgs/Dashboard";
+
 
 interface DashboardUser {
   id?: string;
@@ -49,21 +55,18 @@ export function WorkspaceDashboard({
     [user.firstName, user.lastName].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className="flex flex-col gap-6 p-4 lg:p-6">
+    <div className="flex flex-col mx-12 gap-6 p-4 lg:p-6">
       {/* Welcome header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">
+          <h1 className={` ${cairo.className} font-bold text-3xl text-foreground `}>
             Welcome {firstName},{" "}
-            <span className="text-muted-foreground">Let&apos;s do some</span>{" "}
+            <span >Let&apos;s do some</span>{" "}
             <span className="text-primary">Tasks!</span>
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Here&apos;s what&apos;s happening in your workspace.
-          </p>
         </div>
-        <Button variant="outline" className="gap-2 self-start">
-          <Repeat2 className="size-4" />
+        <Button variant="default" className={`gap-2 p self-start ${cairo.className}`}>
+          <Switch className="size-4" />
           Switch Workspace
         </Button>
       </div>
@@ -76,9 +79,9 @@ export function WorkspaceDashboard({
       ) : null}
 
       {/* Main grid: content + right rail */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="  gap-5 xl:grid-cols-[1fr_260px]">
+        <div className="flex flex-col gap-6 w-full">
+          <div className="flex gap-6">
             <ProfileCard
               name={fullName}
               email={user.email}
@@ -86,19 +89,15 @@ export function WorkspaceDashboard({
             />
             <LastWeekProgressPanel />
           </div>
+          <div className="flex gap-6">
+            <DaySchedulePanel />
 
-          <OverviewStats overview={overview} isLoading={isLoading} />
+            <ActiveMembersPanel />
+          </div>
 
-          <BoardsPreview
-            workspaceId={workspaceId}
-            boards={overview?.boardsPreview}
-            isLoading={isLoading}
-          />
-
-          <DaySchedulePanel />
         </div>
 
-        <ActiveMembersPanel />
+        
       </div>
     </div>
   );
@@ -135,29 +134,56 @@ function ProfileCard({
     .toUpperCase();
 
   return (
-    <Card className="bg-card shadow-sm">
-      <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-        <Avatar className="size-16">
-          <AvatarImage src="" alt={name ?? "Profile"} />
-          <AvatarFallback className="text-lg">
-            {initials || "?"}
-          </AvatarFallback>
-        </Avatar>
-        {name ? (
-          <p className="text-base font-semibold text-card-foreground">{name}</p>
-        ) : (
-          <Skeleton className="h-5 w-28" />
-        )}
-        <Badge variant="secondary" className="font-normal">
-          {isOwner ? "Workspace Owner" : "Member"}
-        </Badge>
-        {email ? (
-          <p className="truncate text-xs text-muted-foreground">{email}</p>
-        ) : null}
-        <Button variant="outline" size="sm" className="mt-1 w-full gap-2">
-          <Pencil className="size-3.5" />
-          Edit profile
-        </Button>
+    <Card className="rounded-[12px] w-2/7 border border-[#E2E8F0] bg-white shadow-none">
+      <CardContent className="p-6">
+        <div className="flex gap-4">
+          {/* Avatar */}
+          <Avatar className="h-[140px] w-[140px] shrink-0 border border-[#CBD5E1]">
+            <AvatarImage src="" alt={name ?? "Profile"} />
+            <AvatarFallback className="text-6xl">
+              {initials || "?"}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* Right Side */}
+          <div className="flex flex-1 flex-col justify-center">
+            {name ? (
+              <h2
+                className={`${cairo.className} text-[24px] font-bold leading-none text-[#0F172A]`}
+              >
+                {name}
+              </h2>
+            ) : (
+              <Skeleton className="h-8 w-48" />
+            )}
+
+            <p
+              className={`mt-5 text-[16px] font-bold text-[#64748B]`}
+            >
+              UI/UX Designer
+            </p>
+
+            <p
+              className={` mt-1 text-[12px] font-bold text-[#2563EB]`}
+            >
+              Design team
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="mt-8 flex items-center justify-between">
+          <span
+            className={`${cairo.className} text-[14px] font-bold w-1/2 text-center text-[#2563EB]`}
+          >
+            Workspace Owner
+          </span>
+
+          <Button variant="default" className={`gap-2 w-1/2 self-start ${cairo.className}`}>
+            <Edit className="size-4"/>
+            Edit Profile
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -169,24 +195,63 @@ function ProfileCard({
  */
 function LastWeekProgressPanel() {
   return (
-    <Card className="bg-card shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-semibold">
+    <Card className="rounded-[12px] border p-4 w-3/4 border-[#E2E8F0] bg-white shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className={`flex items-center gap-2 text-[24px] ${cairo.className} font-bold text-[#0F172A]`}>
+          <Dashboard className="size-4" />
           Last week progress
         </CardTitle>
-        <Badge variant="outline" className="font-normal text-muted-foreground">
-          Coming soon
-        </Badge>
+
+        <div className="rounded-[8px] bg-[#DBEAFE] px-4 py-2 text-sm font-medium text-[#2563EB]">
+          Urgent Tasks
+        </div>
       </CardHeader>
+
       <CardContent>
-        <div className="flex h-44 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-center">
-          <BarChart3 className="size-8 text-muted-foreground/60" />
-          <p className="text-sm font-medium text-card-foreground">
-            No progress data yet
-          </p>
-          <p className="max-w-xs text-xs text-muted-foreground">
-            Weekly activity insights will appear here once available.
-          </p>
+        <div className="h-[180px]">
+          <div className="flex h-full flex-col">
+            {/* Bars Area */}
+            <div className="flex flex-1 items-end justify-between px-2">
+              {[
+                { day: "Mon", value: 22 },
+                { day: "Tue", value: 11 },
+                { day: "Wed", value: 24 },
+                { day: "Thu", value: 18 },
+                { day: "Fri", value: 2 },
+                { day: "Sat", value: 5 },
+                { day: "Sun", value: 20 },
+              ].map((item) => (
+                <div
+                  key={item.day}
+                  className="flex flex-col items-center justify-end"
+                >
+                  <div
+                    className="w-[120px] rounded-t-[8px] bg-[#2563EB] transition-all"
+                    style={{
+                      height: `${item.value * 3.5}px`,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* X Axis */}
+            <div className="mt-1 border-t border-[#94A3B8]" />
+
+            {/* Days */}
+            <div className="flex justify-between px-2 pt-2">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <div
+                  key={day}
+                  className="flex w-[120px] justify-center"
+                >
+                  <span className="text-[12px] font-medium text-[#334155]">
+                    {day}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -199,9 +264,11 @@ function LastWeekProgressPanel() {
  */
 function DaySchedulePanel() {
   return (
-    <Card className="bg-card shadow-sm">
+    <Card className="bg-card shadow-sm w-2/3 p-4">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-semibold">Day schedule</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          
+          Day schedule</CardTitle>
         <Button variant="outline" size="sm" className="gap-2" disabled>
           <Plus className="size-3.5" />
           Add Event
@@ -229,9 +296,11 @@ function DaySchedulePanel() {
  */
 function ActiveMembersPanel() {
   return (
-    <Card className="h-fit bg-card shadow-sm">
+    <Card className="h-fit bg-card shadow-sm w-1/3 p-3">
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Active Members</CardTitle>
+        <CardTitle className={` text-[24px] items-center flex gap-3 font-bold ${cairo.className}`}>
+          <Users className="size-6" />
+          Active Members</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center">

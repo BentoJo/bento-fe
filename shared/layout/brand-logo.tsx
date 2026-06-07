@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { cn } from "@/shared/lib/utils";
+import logo from "../../public/Logo-light.svg"
 
 interface BrandLogoProps {
   className?: string;
@@ -21,7 +22,7 @@ export function BrandLogo({
 }: BrandLogoProps) {
   return (
     <Image
-      src="/logo-light.svg"
+      src={logo}
       alt={alt}
       width={width}
       height={height}
