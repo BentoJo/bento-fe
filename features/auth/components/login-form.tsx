@@ -49,7 +49,7 @@ export function LoginForm() {
     defaultValues: { email: "", otp: "" },
   });
 
-  const [step, setStep] = useState<"login" | "otp">("otp");
+  const [step, setStep] = useState<"login" | "otp">("login");
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpExpiresIn, setOtpExpiresIn] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);

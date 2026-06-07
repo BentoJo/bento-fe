@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import Dropdown_Arrow from "@/shared/components/svgs/DropDown_Arrow";
 
 interface WorkspaceSwitcherProps {
   workspaceId: string;
@@ -42,13 +43,11 @@ export function WorkspaceSwitcher({ workspaceId }: WorkspaceSwitcherProps) {
               {initial}
             </span>
             <span className="flex min-w-0 flex-col">
-              <span className="text-[10px] uppercase tracking-wide text-sidebar-foreground/50">
-                Workspace
-              </span>
+
               <span className="truncate font-medium">{currentName}</span>
             </span>
           </span>
-          <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/50" />
+          <Dropdown_Arrow className="size-4 shrink-0 text-sidebar-foreground/50" />
         </button>
       </DropdownMenuTrigger>
 
