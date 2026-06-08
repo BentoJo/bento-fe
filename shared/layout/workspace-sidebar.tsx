@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BrandLogo } from "@/shared/layout/brand-logo";
+
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
+import { BrandLogo } from "@/shared/layout/brand-logo";
 import { cn } from "@/shared/lib/utils";
-import Close_arrow from "../components/svgs/Close-Arrow";
+import CloseArrow from "../components/svgs/Close-Arrow";
 import Home from "../components/svgs/Home";
 import Board from "../components/svgs/Board";
 import Calendar from "../components/svgs/Calendar";
@@ -31,6 +33,7 @@ interface NavItem {
 
 export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
   const base = `/w/${workspaceId}`;
 
   const workspaceNav: NavItem[] = [
@@ -58,58 +61,119 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
 
   return (
     <aside
-      className="flex h-[calc(100vh-24px)] w-[264px] shrink-0 flex-col m-3 mr-0 rounded-2xl text-white overflow-hidden"
-      style={{ background: "#010D1E" }}
+      className={cn(
+        "m-3 mr-0 flex h-[calc(100vh-24px)] shrink-0 flex-col overflow-hidden rounded-2xl bg-[#010D1E] text-white transition-[width] duration-300 ease-in-out",
+        collapsed ? "w-[88px]" : "w-[264px]",
+      )}
     >
-      {/* ── Header: Logo + collapse arrow ── */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-6 mb-[40px] ">
-        <BrandLogo width={130} height={32} />
-        <button
-          className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-white/5"
-          aria-label="Collapse sidebar"
+      <div
+        className={cn(
+          "mb-10 flex items-center px-6 pb-6 pt-6 transition-all duration-300",
+          collapsed ? "justify-center" : "justify-between",
+        )}
+      >
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-300",
+            collapsed ? "w-0 opacity-0" : "w-[130px] opacity-100",
+          )}
         >
-          <Close_arrow />
+          <BrandLogo width={130} height={32} />
+        </div>
+
+        <button
+          type="button"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed((current) => !current)}
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-white/5"
+        >
+          <span
+            className={cn(
+              "flex transition-transform duration-300",
+              collapsed && "rotate-180",
+            )}
+          >
+            <CloseArrow />
+          </span>
         </button>
       </div>
 
-      {/* ── Workspace Switcher ── */}
-      <div className="px-4 pb-3">
-        <WorkspaceSwitcher workspaceId={workspaceId} />
+      <div
+        className={cn(
+          "flex px-4 pb-3 transition-all duration-300",
+          collapsed ? "justify-center" : "justify-start",
+        )}
+      >
+        <WorkspaceSwitcher workspaceId={workspaceId} collapsed={collapsed} />
       </div>
 
-      {/* ── Your Role row ── */}
-      <div className="flex items-center justify-between px-5 py-4">
-        <span className="text-xs font-medium text-[#94A3B8]">Your Role :</span>
+      <div
+        className={cn(
+          "flex items-center px-5 py-4 transition-all duration-300",
+          collapsed ? "justify-center" : "justify-between",
+        )}
+      >
+        <span
+          className={cn(
+            "whitespace-nowrap text-xs font-medium text-[#94A3B8] transition-all duration-200",
+            collapsed ? "w-0 opacity-0" : "opacity-100",
+          )}
+        >
+          Your Role :
+        </span>
         <div className="flex items-center gap-1.5">
-          <Shield/>
-          <span className="text-xs font-medium text-[#94A3B8]">Admin</span>
+          <Shield />
+          <span
+            className={cn(
+              "whitespace-nowrap text-xs font-medium text-[#94A3B8] transition-all duration-200",
+              collapsed ? "hidden" : "opacity-100",
+            )}
+          >
+            Admin
+          </span>
         </div>
       </div>
 
-      {/* ── Nav ── */}
-      <nav className={` ${cairo.className} flex flex-1 flex-col px-4 mt-2 gap-2 overflow-y-auto `}>
-
-        {/* Workspace section */}
-        <SectionLabel label="Workspace " />
-        <ul className="space-y-0.5 mb-4">
+      <nav
+        className={cn(
+          cairo.className,
+          "mt-2 flex flex-1 flex-col gap-2 overflow-y-auto px-4",
+        )}
+      >
+        <SectionLabel label="Workspace" collapsed={collapsed} />
+        <ul className="mb-4 space-y-0.5">
           {workspaceNav.map((item) => (
-            <NavLink key={item.label} item={item} active={isActive(item)} />
+            <NavLink
+              key={item.label}
+              item={item}
+              active={isActive(item)}
+              collapsed={collapsed}
+            />
           ))}
         </ul>
 
-        {/* Admin section */}
-        <SectionLabel label="Admin" />
+        <SectionLabel label="Admin" collapsed={collapsed} />
         <ul className="space-y-0.5">
           {adminNav.map((item) => (
-            <NavLink key={item.label} item={item} active={isActive(item)} />
+            <NavLink
+              key={item.label}
+              item={item}
+              active={isActive(item)}
+              collapsed={collapsed}
+            />
           ))}
         </ul>
 
-        {/* Bottom nav pushed to bottom */}
-        <div className="mt-auto pt-4 pb-4 border-t border-white/5">
+        <div className="mt-auto border-t border-white/5 pb-4 pt-4">
           <ul className="space-y-0.5">
             {bottomNav.map((item) => (
-              <NavLink key={item.label} item={item} active={isActive(item)} />
+              <NavLink
+                key={item.label}
+                item={item}
+                active={isActive(item)}
+                collapsed={collapsed}
+              />
             ))}
           </ul>
         </div>
@@ -118,11 +182,21 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
   );
 }
 
-/* ── Section label with divider line ── */
-function SectionLabel({ label }: { label: string }) {
+function SectionLabel({
+  label,
+  collapsed,
+}: {
+  label: string;
+  collapsed: boolean;
+}) {
   return (
-    <div className="flex items-center gap-2 mb-2 px-1">
-      <span className="text-xs font-medium text-[#94A3B8] whitespace-nowrap">
+    <div
+      className={cn(
+        "mb-2 flex items-center gap-2 px-1 transition-all duration-200",
+        collapsed ? "h-px opacity-0" : "opacity-100",
+      )}
+    >
+      <span className="whitespace-nowrap text-xs font-medium text-[#94A3B8]">
         {label}
       </span>
       <div className="h-px flex-1 bg-[#1E293B]" />
@@ -130,16 +204,32 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-/* ── Nav link with left active indicator ── */
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({
+  item,
+  active,
+  collapsed,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+}) {
   const Icon = item.icon;
+
   return (
-    <li className={`flex items-center gap-2 ${cairo.className}`}>
-      {/* Left blue indicator bar */}
-      <div className="w-[3px] flex-shrink-0 flex items-center justify-center" style={{ height: 40 }}>
+    <li
+      className={cn(
+        cairo.className,
+        "flex items-center",
+        collapsed ? "gap-1" : "gap-2",
+      )}
+    >
+      <div
+        className="flex w-[3px] shrink-0 items-center justify-center"
+        style={{ height: 40 }}
+      >
         {active && (
           <div
-            className="w-[4px]  rounded-full bg-[#3B82F6]"
+            className="w-[4px] rounded-full bg-[#3B82F6]"
             style={{ height: 30 }}
           />
         )}
@@ -147,25 +237,27 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 
       <Link
         href={item.href}
+        title={collapsed ? item.label : undefined}
         className={cn(
-          "flex flex-1 items-center gap-3 ${cairo.className} rounded-[8px] px-3 transition-all duration-150",
-          "h-[40px]",
+          "flex h-[40px] items-center rounded-[8px] transition-all duration-200",
+          collapsed ? "w-[40px] justify-center px-0" : "flex-1 gap-3 px-3",
           active
             ? "bg-[#3B82F6]/10 text-white"
-            : "text-[#94A3B8] hover:bg-white/5 hover:text-white"
+            : "text-[#94A3B8] hover:bg-white/5 hover:text-white",
         )}
         aria-current={active ? "page" : undefined}
       >
         <Icon
           className={cn(
             "size-[18px] shrink-0",
-            active ? "text-white" : "text-[#94A3B8]"
+            active ? "text-white" : "text-[#94A3B8]",
           )}
         />
         <span
           className={cn(
-            "text-[14px] font-semibold leading-none",
-            active ? "text-white" : "text-[#94A3B8]"
+            "overflow-hidden whitespace-nowrap text-[14px] font-semibold leading-none transition-all duration-200",
+            collapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+            active ? "text-white" : "text-[#94A3B8]",
           )}
         >
           {item.label}

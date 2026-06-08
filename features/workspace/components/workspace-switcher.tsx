@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, Plus, LayoutGrid } from "lucide-react";
+import { Check, Plus, LayoutGrid } from "lucide-react";
 
 import { useWorkspaces } from "@/features/workspace/hooks/use-workspaces";
 import { cn } from "@/shared/lib/utils";
@@ -17,10 +17,14 @@ import Dropdown_Arrow from "@/shared/components/svgs/DropDown_Arrow";
 
 interface WorkspaceSwitcherProps {
   workspaceId: string;
+  collapsed?: boolean;
 }
 
 /** Sidebar workspace switcher — lists the user's workspaces and switches between them. */
-export function WorkspaceSwitcher({ workspaceId }: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({
+  workspaceId,
+  collapsed = false,
+}: WorkspaceSwitcherProps) {
   const router = useRouter();
   const { workspaces, isLoading } = useWorkspaces();
 
@@ -34,20 +38,45 @@ export function WorkspaceSwitcher({ workspaceId }: WorkspaceSwitcherProps) {
         <button
           type="button"
           className={cn(
-            "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+            "flex items-center rounded-lg py-2.5",
             "bg-sidebar-accent/40 text-left text-sm transition-colors hover:bg-sidebar-accent/60",
+            collapsed
+              ? "size-10 justify-center px-0"
+              : "w-full justify-between px-3",
           )}
+          title={collapsed ? currentName : undefined}
         >
-          <span className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
-              {initial}
+          <span
+            className={cn(
+              "flex min-w-0 items-center",
+              collapsed ? "justify-center" : "gap-2.5",
+            )}
+          >
+            <span
+              className="flex size-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-violet-500 bg-cover bg-center text-xs font-bold text-white"
+              style={
+                current?.logoUrl
+                  ? { backgroundImage: `url(${current.logoUrl})` }
+                  : undefined
+              }
+            >
+              {current?.logoUrl ? null : initial}
             </span>
-            <span className="flex min-w-0 flex-col">
-
+            <span
+              className={cn(
+                "flex min-w-0 flex-col overflow-hidden transition-all duration-200",
+                collapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+              )}
+            >
               <span className="truncate font-medium">{currentName}</span>
             </span>
           </span>
-          <Dropdown_Arrow className="size-4 shrink-0 text-sidebar-foreground/50" />
+          <Dropdown_Arrow
+            className={cn(
+              "size-4 shrink-0 text-sidebar-foreground/50 transition-all duration-200",
+              collapsed ? "hidden" : "opacity-100",
+            )}
+          />
         </button>
       </DropdownMenuTrigger>
 

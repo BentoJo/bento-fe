@@ -9,9 +9,7 @@ interface ShellUser {
   avatarUrl?: string | null;
 }
 
-/**
- * Global (non-workspace) app shell: dark navy sidebar + topbar + main content.
- */
+
 export function GlobalShell({
   user,
   children,

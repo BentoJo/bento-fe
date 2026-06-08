@@ -1,304 +1,182 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Loader2, LogOut, MailOpen } from "lucide-react";
+
+import { useLogout } from "@/features/auth/hooks/use-logout";
 import { cn } from "@/shared/lib/utils";
 import { BrandLogo } from "@/shared/layout/brand-logo";
-import { useLogout } from "@/features/auth/hooks/use-logout";
-import Close_arrow from "../components/svgs/Close-Arrow";
+import CloseArrow from "../components/svgs/Close-Arrow";
 import Home from "../components/svgs/Home";
-import Board from "../components/svgs/Board";
-import Calendar from "../components/svgs/Calendar";
-import Analytics from "../components/svgs/Analytics";
-import Users from "../components/svgs/Users";
-import Archive from "../components/svgs/Archive";
-import Audit from "../components/svgs/Audit";
-import Shield from "../components/svgs/Sheild";
-import Settings from "../components/svgs/Settings";
 import Report from "../components/svgs/Report";
 import { cairo } from "../lib/fonts";
-import Dropdown_List from "../components/svgs/Dropdown_List";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   match: string[];
-  section?: "workspace" | "admin" | "bottom";
 }
 
-const NAV_ITEMS: NavItem[] = [
+const GLOBAL_ITEMS: NavItem[] = [
+  { label: "Home", href: "/home", icon: Home, match: ["/home"] },
   {
-    label: "Home",
-    href: "/home",
-    icon: Home,
-    match: ["/home"],
-    section: "workspace",
-  },
-  {
-    label: "Board",
-    href: "/board",
-    icon: Board,
-    match: ["/board"],
-    section: "workspace",
-  },
-  {
-    label: "Calendar",
-    href: "/calendar",
-    icon: Calendar,
-    match: ["/calendar"],
-    section: "workspace",
-  },
-  {
-    label: "Analytics",
-    href: "/analytics",
-    icon: Analytics,
-    match: ["/analytics"],
-    section: "admin",
-  },
-  {
-    label: "Users",
-    href: "/users",
-    icon: Users,
-    match: ["/users"],
-    section: "admin",
-  },
-  {
-    label: "Archive",
-    href: "/archive",
-    icon: Archive,
-    match: ["/archive"],
-    section: "admin",
-  },
-  {
-    label: "Auditing Log",
-    href: "/audit-log",
-    icon: Audit,
-    match: ["/audit-log"],
-    section: "admin",
+    label: "Invitations",
+    href: "/invitations",
+    icon: MailOpen,
+    match: ["/invitations"],
   },
   {
     label: "Report Problem",
     href: "/report-problem",
     icon: Report,
-    match: ["/#"],
-    section: "bottom",
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
-    match: ["/settings"],
-    section: "bottom",
+    match: ["/report-problem"],
   },
 ];
 
-
-const bottomItems = NAV_ITEMS.filter(
-  (item) => item.section === "bottom",
-);
-
-
 export function GlobalSidebar() {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
   const { logout, isLoggingOut } = useLogout();
 
-  const workspaceItems = NAV_ITEMS.filter(
-    (item) => item.section === "workspace",
-  );
+  return (
+    <aside
+      className={cn(
+        "m-3 flex h-[calc(100vh-24px)] shrink-0 flex-col overflow-hidden rounded-[16px] bg-[#010D1E] px-6 py-4 text-white transition-[width,padding] duration-300 ease-in-out",
+        collapsed ? "w-[88px] px-4" : "w-[280px]",
+      )}
+    >
+      <div
+        className={cn(
+          "mt-2 flex items-center transition-all duration-300",
+          collapsed ? "justify-center" : "justify-between",
+        )}
+      >
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-300",
+            collapsed ? "w-0 opacity-0" : "w-[150px] opacity-100",
+          )}
+        >
+          <BrandLogo width={150} height={37} />
+        </div>
 
-  const adminItems = NAV_ITEMS.filter(
-    (item) => item.section === "admin",
+        <button
+          type="button"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed((current) => !current)}
+          className="flex size-9 items-center justify-center rounded-lg transition hover:bg-white/5 cursor-pointer"
+        >
+          <span
+            className={cn(
+              "flex transition-transform duration-300",
+              collapsed && "rotate-180",
+            )}
+          >
+            <CloseArrow />
+          </span>
+        </button>
+      </div>
+
+      <nav className={cn(cairo.className, "mt-10 flex flex-1 flex-col")}>
+        <ul className="space-y-3">
+          {GLOBAL_ITEMS.map((item) => {
+            const active = item.match.some(
+              (m) => pathname === m || pathname.startsWith(`${m}/`),
+            );
+
+            return (
+              <NavLink
+                key={item.label}
+                item={item}
+                active={active}
+                collapsed={collapsed}
+              />
+            );
+          })}
+        </ul>
+
+        <div className="mt-auto pb-2">
+          <button
+            type="button"
+            onClick={logout}
+            disabled={isLoggingOut}
+            title={collapsed ? "Logout" : undefined}
+            className={cn(
+              "flex h-[42px] w-full items-center rounded-[8px] text-[#94A3B8] transition-all duration-200 hover:bg-white/5 hover:text-white disabled:pointer-events-none disabled:opacity-60 cursor-pointer",
+              collapsed ? "justify-center px-0" : "gap-3 px-3",
+            )}
+          >
+            {isLoggingOut ? (
+              <Loader2 className="size-5 shrink-0 animate-spin" />
+            ) : (
+              <LogOut className="size-5 shrink-0" />
+            )}
+            <span
+              className={cn(
+                "overflow-hidden whitespace-nowrap text-[16px] font-semibold leading-none transition-all duration-200",
+                collapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+              )}
+            >
+              Logout
+            </span>
+          </button>
+        </div>
+      </nav>
+    </aside>
   );
+}
+
+function NavLink({
+  item,
+  active,
+  collapsed,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+}) {
+  const Icon = item.icon;
 
   return (
-    <aside className="flex h-[calc(100vh - 16px)] w-[280px] shrink-0 flex-col m-3 rounded-[16px] bg-[#010D1E] px-6 py-4 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between mt-2">
-        <BrandLogo width={150} height={37} />
-
-        <button className="rounded-lg p-2 transition hover:bg-white/5">
-          <Close_arrow />
-        </button>
+    <li className={cn("flex items-center", collapsed ? "gap-1" : "gap-2")}>
+      <div
+        className="flex w-[3px] shrink-0 items-center justify-center"
+        style={{ height: 42 }}
+      >
+        {active && (
+          <div
+            className="w-[4px] rounded-full bg-[#3B82F6]"
+            style={{ height: 30 }}
+          />
+        )}
       </div>
 
-      {/* Workspace Selector */}
-      <div className="mt-10">
-        <button className="flex w-full items-center justify-between rounded-[8px] border border-[#1E293B] bg-[#0F172A] px-4 py-3 text-sm  font-medium">
-          <div className="flex items-center gap-2">
-            <span>📦</span>
-            <span className={`${cairo.className} text-[16px] font-semibold`}>Bento</span>
-          </div>
-
-          <Dropdown_List className="size-4" />
-        </button>
-      </div>
-
-      {/* Role */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between text-sm text-[#94A3B8]">
-          <span>Your Role :</span>
-
-          <div className="flex items-center gap-2">
-            <Shield width={16} height={16} />
-            <span>Admin</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Workspace Section */}
-      <div className="mt-8">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="text-sm font-medium text-[#94A3B8]">
-            Workspace
-          </span>
-
-          <div className="h-px flex-1 bg-white/10" />
-        </div>
-
-        <nav className="space-y-3">
-          {workspaceItems.map((item) => {
-            const isActive = item.match.some(
-              (m) => pathname === m || pathname.startsWith(`${m}/`),
-            );
-
-            const Icon = item.icon;
-
-            return (
-              <div
-                key={item.label}
-                className="flex items-center"
-              >
-                {/* Active Indicator */}
-                <div className="flex w-4 justify-center">
-                  {isActive && (
-                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
-                  )}
-                </div>
-
-                {/* Navigation Item */}
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
-                    isActive
-                      ? "bg-[#3B82F6]/10 text-white"
-                      : "text-white/80 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <Icon className="size-7 shrink-0" />
-
-                  <span
-                    className={`${cairo.className} text-[16px] font-semibold`}
-                  >
-                    {item.label}
-                  </span>
-                </Link>
-              </div>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Admin Section */}
-      <div className="mt-8">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="text-sm font-medium text-[#94A3B8]">
-            Admin
-          </span>
-
-          <div className="h-px flex-1 bg-white/10" />
-        </div>
-
-        <nav className="space-y-3">
-          {adminItems.map((item) => {
-            const isActive = item.match.some(
-              (m) => pathname === m || pathname.startsWith(`${m}/`),
-            );
-
-            const Icon = item.icon;
-
-            return (
-              <div
-                key={item.label}
-                className="flex items-center"
-              >
-                {/* Active Indicator */}
-                <div className="flex w-4 justify-center">
-                  {isActive && (
-                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
-                  )}
-                </div>
-
-                {/* Navigation Item */}
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
-                    isActive
-                      ? "bg-[#3B82F6]/10 text-white"
-                      : "text-white/80 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <Icon className="size-7 shrink-0" />
-
-                  <span
-                    className={`${cairo.className} text-[16px] font-semibold`}
-                  >
-                    {item.label}
-                  </span>
-                </Link>
-              </div>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Bottom Actions */}
-      <div className="mt-auto pt-6">
-        <nav className="space-y-3">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
-
-            const isActive = item.match.some(
-              (m) => pathname === m || pathname.startsWith(`${m}/`),
-            );
-
-            return (
-              <div
-                key={item.label}
-                className="flex items-center"
-              >
-                <div className="flex w-4 justify-center">
-                  {isActive && (
-                    <div className="h-[30px] w-[4px] rounded-full bg-[#3B82F6]" />
-                  )}
-                </div>
-
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex h-[42px] flex-1 items-center gap-2 rounded-[8px] px-3 transition-all",
-                    isActive
-                      ? "bg-[#3B82F6]/10 text-white"
-                      : "text-white/80 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <Icon className="size-5 shrink-0" />
-
-                  <span
-                    className={`${cairo.className} text-[16px] font-semibold`}
-                  >
-                    {item.label}
-                  </span>
-                </Link>
-              </div>
-            );
-          })}
-        </nav>
-
-
-      </div>
-    </aside>
+      <Link
+        href={item.href}
+        title={collapsed ? item.label : undefined}
+        className={cn(
+          "flex h-[42px] items-center rounded-[8px] transition-all duration-200",
+          collapsed ? "w-full justify-center px-0" : "flex-1 gap-3 px-3",
+          active
+            ? "bg-[#3B82F6]/10 text-white"
+            : "text-[#94A3B8] hover:bg-white/5 hover:text-white",
+        )}
+        aria-current={active ? "page" : undefined}
+      >
+        <Icon className="size-5 shrink-0" />
+        <span
+          className={cn(
+            "overflow-hidden whitespace-nowrap text-[16px] font-semibold leading-none transition-all duration-200",
+            collapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+          )}
+        >
+          {item.label}
+        </span>
+      </Link>
+    </li>
   );
 }
