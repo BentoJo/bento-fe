@@ -31,6 +31,10 @@ import Switch from "@/shared/components/svgs/Switch";
 import { Cairo } from "next/font/google";
 import Edit from "@/shared/components/svgs/Edit";
 import Dashboard from "@/shared/components/svgs/Dashboard";
+import { ActiveMembersPanel } from "./active-member-panel";
+import PlusIcon from "@/shared/components/svgs/PlusIcon";
+import Schedule from "@/shared/components/svgs/Schedule";
+import { DaySchedulePanel } from "./day-schedule";
 
 
 interface DashboardUser {
@@ -92,7 +96,7 @@ export function WorkspaceDashboard({
           <div className="flex gap-6">
             <DaySchedulePanel />
 
-            <ActiveMembersPanel />
+            <ActiveMembersPanel/>
           </div>
 
         </div>
@@ -262,15 +266,16 @@ function LastWeekProgressPanel() {
  * TODO(BE): no day-schedule / events endpoint yet.
  * Graceful empty state, no mock events.
  */
-function DaySchedulePanel() {
+function DaySchedulePanelFunction() {
   return (
     <Card className="bg-card shadow-sm w-2/3 p-4">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-semibold">
-          
-          Day schedule</CardTitle>
-        <Button variant="outline" size="sm" className="gap-2" disabled>
-          <Plus className="size-3.5" />
+        <CardTitle className={`flex items-center gap-2 text-[24px] ${cairo.className} font-bold text-[#0F172A]`}>
+          <Schedule className="size-4" />
+          Day schedule
+        </CardTitle>
+        <Button variant="default" className={`gap-2 p self-start ${cairo.className}`}>
+          <PlusIcon className="size-4" />
           Add Event
         </Button>
       </CardHeader>
@@ -294,25 +299,4 @@ function DaySchedulePanel() {
  * The overview only returns totalMembers (a count), not a member list,
  * so we render an empty state instead of inventing members.
  */
-function ActiveMembersPanel() {
-  return (
-    <Card className="h-fit bg-card shadow-sm w-1/3 p-3">
-      <CardHeader>
-        <CardTitle className={` text-[24px] items-center flex gap-3 font-bold ${cairo.className}`}>
-          <Users className="size-6" />
-          Active Members</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center">
-          <Users className="size-8 text-muted-foreground/60" />
-          <p className="text-sm font-medium text-card-foreground">
-            No member activity
-          </p>
-          <p className="max-w-[14rem] text-xs text-muted-foreground">
-            Live member presence is coming soon.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+
