@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -88,14 +89,14 @@ export function BoardsList({ workspaceId }: BoardsListProps) {
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
         <form
           onSubmit={handleSearchSubmit}
-          className="relative w-full sm:max-w-sm"
+          className="relative max-sm:max-w-sm sm:w-1/2"
         >
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search for a board ..."
-            className="pl-9"
+            className="pl-9 w-full focus:ring-0 focus-visible:ring-0 focus-visible:outline-none focus:outline-none"
           />
         </form>
         <Button
@@ -151,7 +152,6 @@ export function BoardsList({ workspaceId }: BoardsListProps) {
     </div>
   );
 }
-
 function BoardCard({
   workspaceId,
   board,
@@ -161,6 +161,7 @@ function BoardCard({
   board: Board;
   onMutated: () => void;
 }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   const run = async (fn: () => Promise<void>, fallback: string) => {
@@ -173,6 +174,10 @@ function BoardCard({
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleNavigate = () => {
+    router.push(`/w/${workspaceId}/boards/${board.id}`);
   };
 
   const handleArchiveToggle = () =>
@@ -202,90 +207,105 @@ function BoardCard({
     }, "Failed to delete board.");
 
   return (
-    <Card className="group gap-0 overflow-hidden bg-card shadow-sm transition-shadow hover:shadow-md">
-      <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
-        <Link
-          href={`/w/${workspaceId}/boards/${board.id}`}
-          className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-xl"
-        >
+    <Card
+      onClick={handleNavigate}
+      className="group relative overflow-hidden bg-card py-4 shadow-sm transition-shadow cursor-pointer hover:shadow-md"
+    >
+      {/* HEADER */}
+      <CardHeader className="relative z-10 flex flex-row items-start justify-between gap-2 pb-2">
+        {/* Logo (NOT clickable, no pointer) */}
+        <div className="flex size-11 items-center justify-center cursor-pointer rounded-lg bg-primary/10 text-xl">
           {board.icon?.trim() ? (
             <span aria-hidden>{board.icon.trim()}</span>
           ) : (
-            <KanbanSquare className="size-5 text-primary" />
+            <KanbanSquare className="size-5 text-primary cursor-default" />
           )}
-        </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Board actions"
-              disabled={busy}
-              className="text-muted-foreground"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem asChild>
-              <Link href={`/w/${workspaceId}/boards/${board.id}`}>
-                <KanbanSquare className="size-4" />
-                Open board
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void handleFavoriteToggle()}>
-              <Star
-                className={
-                  board.isFavorite ? "size-4 fill-warning text-warning" : "size-4"
-                }
-              />
-              {board.isFavorite ? "Unfavorite" : "Favorite"}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void handleArchiveToggle()}>
-              {board.isArchived ? (
-                <>
-                  <ArchiveRestore className="size-4" />
-                  Unarchive
-                </>
-              ) : (
-                <>
-                  <Archive className="size-4" />
-                  Archive
-                </>
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => void handleDelete()}
-            >
-              <Trash2 className="size-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </div>
+
+        {/* Dropdown ONLY interactive */}
+        <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Board actions"
+                disabled={busy}
+                className="cursor-pointer text-muted-foreground"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-44 z-50">
+              <DropdownMenuItem asChild>
+                <Link href={`/w/${workspaceId}/boards/${board.id}`}>
+                  <KanbanSquare className="size-4" />
+                  Open board
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => void handleFavoriteToggle()}>
+                <Star
+                  className={
+                    board.isFavorite
+                      ? "size-4 fill-warning text-warning"
+                      : "size-4"
+                  }
+                />
+                {board.isFavorite ? "Unfavorite" : "Favorite"}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => void handleArchiveToggle()}>
+                {board.isArchived ? (
+                  <>
+                    <ArchiveRestore className="size-4" />
+                    Unarchive
+                  </>
+                ) : (
+                  <>
+                    <Archive className="size-4" />
+                    Archive
+                  </>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => void handleDelete()}
+              >
+                <Trash2 className="size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+
+      {/* CONTENT (no pointer cursor anywhere) */}
+      <CardContent className="relative z-10 flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <Link
-            href={`/w/${workspaceId}/boards/${board.id}`}
-            className="truncate font-semibold text-card-foreground transition-colors hover:text-primary"
-          >
+          <span className="truncate font-semibold text-card-foreground">
             {board.name}
-          </Link>
+          </span>
+
           {board.isFavorite ? (
-            <Star className="size-3.5 fill-warning text-warning" />
+            <Star className="size-3.5 fill-warning text-warning cursor-default" />
           ) : null}
+
           {board.isArchived ? (
-            <Badge variant="secondary" className="font-normal">
+            <Badge variant="secondary" className="font-normal cursor-default">
               Archived
             </Badge>
           ) : null}
         </div>
+
         <div className="flex items-center gap-2">
           <Badge
             variant="secondary"
-            className="gap-1 font-normal text-muted-foreground"
+            className="gap-1 font-normal text-muted-foreground cursor-default"
           >
             {board.visibility === "private" ? (
               <Lock className="size-3" />
@@ -294,8 +314,9 @@ function BoardCard({
             )}
             {board.visibility === "private" ? "Private" : "Public"}
           </Badge>
+
           {typeof board.membersCount === "number" ? (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground cursor-default">
               {board.membersCount}{" "}
               {board.membersCount === 1 ? "member" : "members"}
             </span>

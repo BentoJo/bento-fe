@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
-  ArrowLeft,
   ChevronRight,
   Columns3,
   Eye,
@@ -78,7 +77,6 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
             href={`/w/${workspaceId}/boards`}
             className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="size-3.5" />
             Boards
           </Link>
           <ChevronRight className="size-3.5" />
