@@ -5,16 +5,89 @@ import type {
   GetRolePermissionsResponse,
   GetWorkspaceRolesResponse,
   WorkspaceRole,
+  CreateRoleRequest,
+  CreateRoleResponse,
+  UpdateRoleRequest,
+  UpdateRoleResponse,
+  AssignPermissionsRequest,
+  AssignPermissionsResponse,
+  RemovePermissionsRequest,
+  RemovePermissionsResponse,
 } from "@/features/roles/types/role";
 
 /**
  * Workspace roles API (gateway @Controller('workspace'), global prefix /api/v1).
  * Gateway wraps gRPC payloads as { success, message, data }, so we unwrap `.data.data`.
  */
-const BASE = "/v1/workspace";
+const BASE = "/api/v1/workspace";
 
 function fail(error: unknown, fallback: string): never {
   throw new Error(getErrorMessage(error) || fallback);
+}
+
+/** POST /{workspaceId}/roles */
+export async function createRole(
+  workspaceId: string,
+  data: CreateRoleRequest,
+): Promise<string> {
+  try {
+    const res = await getClientAxios().post<ApiEnvelope<CreateRoleResponse>>(
+      `${BASE}/${workspaceId}/roles`,
+      data,
+    );
+    return res.data.data.roleId;
+  } catch (error) {
+    fail(error, "Failed to create role.");
+  }
+}
+
+/** PUT /{workspaceId}/roles/{authzRoleId} */
+export async function updateRole(
+  workspaceId: string,
+  authzRoleId: string,
+  data: UpdateRoleRequest,
+): Promise<boolean> {
+  try {
+    const res = await getClientAxios().put<ApiEnvelope<UpdateRoleResponse>>(
+      `${BASE}/${workspaceId}/roles/${authzRoleId}`,
+      data,
+    );
+    return res.data.data.success;
+  } catch (error) {
+    fail(error, "Failed to update role.");
+  }
+}
+
+/** POST /{workspaceId}/roles/{authzRoleId}/permissions */
+export async function assignPermissionsToRole(
+  workspaceId: string,
+  authzRoleId: string,
+  data: AssignPermissionsRequest,
+): Promise<boolean> {
+  try {
+    const res = await getClientAxios().post<
+      ApiEnvelope<AssignPermissionsResponse>
+    >(`${BASE}/${workspaceId}/roles/${authzRoleId}/permissions`, data);
+    return res.data.data.success;
+  } catch (error) {
+    fail(error, "Failed to assign permissions.");
+  }
+}
+
+/** DELETE /{workspaceId}/roles/{authzRoleId}/permissions */
+export async function removePermissionsFromRole(
+  workspaceId: string,
+  authzRoleId: string,
+  data: RemovePermissionsRequest,
+): Promise<boolean> {
+  try {
+    const res = await getClientAxios().delete<
+      ApiEnvelope<RemovePermissionsResponse>
+    >(`${BASE}/${workspaceId}/roles/${authzRoleId}/permissions`, { data });
+    return res.data.data.success;
+  } catch (error) {
+    fail(error, "Failed to remove permissions.");
+  }
 }
 
 /** GET /{workspaceId}/roles */
