@@ -1,8 +1,16 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ClipboardList, Loader2 } from "lucide-react";
+import {
+  ClipboardList,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  CheckSquare,
+  Upload,
+  Square,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { createCard, updateCard } from "@/features/boards/api/cards";
@@ -37,6 +45,7 @@ import {
 } from "@/shared/components/ui/select";
 import { cn } from "@/shared/lib/utils";
 import LabelIcon from "@/shared/components/svgs/Label";
+import ColsManage from "@/shared/components/svgs/ColsManage";
 
 interface TaskDrawerProps {
   workspaceId: string;
@@ -96,6 +105,7 @@ export function TaskDrawer({
   onUpdated,
 }: TaskDrawerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdditionalOpen, setIsAdditionalOpen] = useState(false);
 
   const { control, handleSubmit, reset, setError } = useForm<TaskFormValues>({
     defaultValues: emptyValues(),
@@ -171,7 +181,9 @@ export function TaskDrawer({
             : {}),
           isPrivate: parsed.data.isPrivate,
           priority: parsed.data.priority,
-          ...(parsed.data.startDate ? { startDate: parsed.data.startDate } : {}),
+          ...(parsed.data.startDate
+            ? { startDate: parsed.data.startDate }
+            : {}),
           ...(parsed.data.dueDate ? { dueDate: parsed.data.dueDate } : {}),
         };
 
@@ -185,7 +197,9 @@ export function TaskDrawer({
     } catch (err) {
       toast.error(
         getErrorMessage(err) ||
-          (mode === "edit" ? "Failed to update task." : "Failed to create task."),
+          (mode === "edit"
+            ? "Failed to update task."
+            : "Failed to create task."),
       );
     } finally {
       setIsSubmitting(false);
@@ -217,16 +231,19 @@ export function TaskDrawer({
           data-[state=closed]:slide-out-to-bottom-2
         "
       >
-        <DialogHeader className="border-b border-border p-5 flex-shrink-0">
+        <DialogHeader className="border-b border-border p-5 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <ClipboardList className="size-8 bg-primary/10 p-2 rounded-sm text-primary" />
             {isEditing ? "Edit Task" : "Create New Task"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="flex-1 flex flex-col overflow-hidden">
+        <form
+          onSubmit={onSubmit}
+          className="flex-1 flex flex-col overflow-hidden"
+        >
           {/* Scrollable Form Body Container with Hidden Scrollbar */}
-          <div 
+          <div
             className="
               flex-1 
               overflow-y-auto 
@@ -234,7 +251,7 @@ export function TaskDrawer({
               flex 
               flex-col 
               gap-5
-              [scrollbar-width:none] 
+              scrollbar-none
               [&::-webkit-scrollbar]:hidden
             "
           >
@@ -266,7 +283,9 @@ export function TaskDrawer({
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="task-description">Description</FieldLabel>
+                  <FieldLabel htmlFor="task-description">
+                    Description
+                  </FieldLabel>
                   <Textarea
                     {...field}
                     id="task-description"
@@ -280,8 +299,10 @@ export function TaskDrawer({
               )}
             />
 
+            <hr className="bg-[#E2EBF6]" />
+
             <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <LabelIcon className="size-5" />
+              <LabelIcon className="size-4" />
               Task Properties
             </p>
 
@@ -440,10 +461,141 @@ export function TaskDrawer({
                 </Field>
               )}
             />
+
+            {isEditing ? (
+              <>
+                <hr className="bg-[#E2EBF6]" />
+                <div className="flex flex-col gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdditionalOpen(!isAdditionalOpen)}
+                    className="flex cursor-pointer items-center justify-between w-full text-sm font-semibold text-foreground hover:opacity-90 transition-opacity"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ColsManage className="size-4 text-foreground" />
+                      Additional Details
+                    </span>
+                    {isAdditionalOpen ? (
+                      <ChevronUp className="size-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="size-4 text-muted-foreground" />
+                    )}
+                  </button>
+
+                  {isAdditionalOpen && (
+                    <div className="flex flex-col gap-6 pl-1 animate-in fade-in duration-200">
+                      {/* Labels Sub-section */}
+                      <div className="flex flex-col gap-2.5">
+                        <p className="text-sm font-semibold text-foreground">
+                          Labels
+                        </p>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {/* You can map over already associated card labels here */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // TODO: Open Workspace Labels selection popover/modal
+                              toast.info(
+                                "Workspace labels selection coming soon!",
+                              );
+                            }}
+                            className="inline-flex items-center gap-1 bg-[#E8F1FF] hover:bg-[#D4E6FF] text-[#1A73E8] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            <Plus className="size-3.5" />
+                            Add Label
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Checklists Sub-section */}
+                      <div className="flex flex-col gap-2.5">
+                        <p className="text-sm font-semibold text-foreground">
+                          Checklists
+                        </p>
+                        {isEditing ? (
+                          <div className="flex flex-col gap-3">
+                            {/* Interactive Edit Checklist UI */}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-lg border border-dashed">
+                              <CheckSquare className="size-4" />
+                              <span className="font-medium text-foreground/80">
+                                Checklist Title
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors self-start pl-1"
+                            >
+                              <Square className="size-3.5" />
+                              Add Checkbox
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border">
+                            Checklists can be customized after the task has been
+                            created.
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Attachments Sub-section */}
+                      <div className="flex flex-col gap-2.5">
+                        <p className="text-sm font-semibold text-foreground">
+                          Attachments
+                        </p>
+                        {isEditing ? (
+                          <div className="border-2 border-dashed border-[#E2EBF6] rounded-xl p-6 text-center flex flex-col items-center justify-center gap-2 bg-background hover:bg-muted/10 transition-colors cursor-pointer group">
+                            <input
+                              type="file"
+                              className="hidden"
+                              id="file-upload"
+                              multiple
+                            />
+                            <label
+                              htmlFor="file-upload"
+                              className="cursor-pointer flex flex-col items-center gap-2"
+                            >
+                              <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                Drag & drop images here
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                or click to browse
+                              </p>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="mt-2 bg-[#E8F1FF] hover:bg-[#D4E6FF] text-[#1A73E8] gap-1.5 font-semibold shadow-none rounded-lg"
+                                onClick={() =>
+                                  document
+                                    .getElementById("file-upload")
+                                    ?.click()
+                                }
+                              >
+                                <Upload className="size-3.5" />
+                                Choose Files
+                              </Button>
+                              <p className="text-[11px] text-muted-foreground mt-2">
+                                Supports: JPG, PNG, WebP (Max 5MB each)
+                              </p>
+                            </label>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border">
+                            File uploads are available once the task is created.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
           </div>
 
           {/* Locked Static Footer */}
-          <div className="flex justify-end gap-3 border-t border-border bg-popover px-5 py-4 flex-shrink-0">
+          <div className="flex justify-end gap-3 border-t border-border bg-popover px-5 py-4 shrink-0">
             <Button
               type="button"
               variant="outline"

@@ -142,7 +142,7 @@ export function ManageColumnsDialog({
                     </div>
                   ) : (
                     <>
-                      <span className="text-sm font-medium text-foreground truncate max-w-[180px]">
+                      <span className="text-sm font-medium text-foreground truncate max-w-45">
                         {col.name}
                       </span>
                       <div className="flex items-center gap-1">
