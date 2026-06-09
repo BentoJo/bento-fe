@@ -12,15 +12,17 @@ import {
   ListFilter,
   Plus,
 } from "lucide-react";
-import { toast } from "sonner";
 
-import { moveCard } from "@/features/boards/api/cards";
 import { useBoard } from "@/features/boards/hooks/use-board";
+import { useCardActions } from "@/features/boards/hooks/use-card";
+import { useColumnActions } from "@/features/boards/hooks/use-column";
 import type { Card, Column } from "@/features/boards/types/board";
 import { CreateTaskDrawer } from "@/features/boards/components/create-task-drawer";
-import { TaskCard } from "@/features/boards/components/task-card";
 import { TaskDetailsDialog } from "@/features/boards/components/task-details-dialog";
+import { ColumnsList } from "@/features/boards/components/columns-list";
+import { ManageColumnsDialog } from "@/features/boards/components/manage-columns-dialog";
 import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 
 interface KanbanBoardProps {
@@ -38,10 +40,13 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
   const [detailsCard, setDetailsCard] = useState<Card | null>(null);
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
+  const [manageColumnsOpen, setManageColumnsOpen] = useState(false);
+
+  const { moveCard: moveCardAction } = useCardActions(workspaceId, boardId, refetch);
 
   const boardName = board?.name ?? "Board";
 
-  // Native HTML5 DnD: optimistically move a card to a new column.
+  // Native HTML5 DnD: move a card to a new column.
   const handleDrop = async (targetColumn: Column) => {
     const cardId = draggingCardId;
     setDraggingCardId(null);
@@ -52,20 +57,10 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
     if (!card || card.columnId === targetColumn.id) return;
 
     const position = (cardsByColumn[targetColumn.id]?.length ?? 0) + 1;
-    try {
-      // Optimistic: the move API is best-effort; we refetch to reconcile.
-      await moveCard(workspaceId, boardId, cardId, {
-        columnId: targetColumn.id,
-        position,
-      });
-      toast.success("Task moved.");
-      refetch();
-    } catch (err) {
-      // TODO(BE): card move endpoint not wired yet — degrade gracefully.
-      toast.error(
-        err instanceof Error ? err.message : "Failed to move task.",
-      );
-    }
+    await moveCardAction(cardId, {
+      columnId: targetColumn.id,
+      position,
+    });
   };
 
   return (
@@ -102,7 +97,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
             </div>
           </div>
 
-          {/* Header actions — visual only, not wired. TODO(BE). */}
+          {/* Header actions */}
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2" disabled>
               <Eye className="size-4" />
@@ -118,8 +113,8 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
             </Button>
             <Button
               size="sm"
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80"
-              disabled
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80 cursor-pointer"
+              onClick={() => setManageColumnsOpen(true)}
             >
               <Columns3 className="size-4" />
               Manage Columns
@@ -139,86 +134,26 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
       {isLoading ? (
         <BoardSkeleton />
       ) : columns.length === 0 ? (
-        <EmptyBoard />
+        <EmptyBoard
+          workspaceId={workspaceId}
+          boardId={boardId}
+          refetch={refetch}
+        />
       ) : (
-        <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
-          {columns
-            .slice()
-            .sort((a, b) => a.position - b.position)
-            .map((column) => {
-              const cards = cardsByColumn[column.id] ?? [];
-              const isOver = dragOverColumnId === column.id;
-              return (
-                <div
-                  key={column.id}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverColumnId(column.id);
-                  }}
-                  onDragLeave={() => setDragOverColumnId(null)}
-                  onDrop={() => void handleDrop(column)}
-                  className={
-                    "flex w-72 shrink-0 flex-col gap-3 rounded-xl border bg-muted/30 p-3 transition-colors" +
-                    (isOver
-                      ? " border-primary bg-primary/5"
-                      : " border-border")
-                  }
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-foreground">
-                        {column.name}
-                      </span>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {cards.length}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Add task to ${column.name}`}
-                      onClick={() => setCreateForColumn(column)}
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-col gap-2.5">
-                    {cards.map((card) => (
-                      <TaskCard
-                        key={card.id}
-                        card={card}
-                        draggable
-                        onDragStart={() => setDraggingCardId(card.id)}
-                        onDragEnd={() => setDraggingCardId(null)}
-                        onClick={() => setDetailsCard(card)}
-                      />
-                    ))}
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    className="mt-1 w-full justify-center gap-2 border border-dashed border-border text-sm text-muted-foreground hover:text-foreground"
-                    onClick={() => setCreateForColumn(column)}
-                  >
-                    <Plus className="size-4" />
-                    Add Task
-                  </Button>
-                </div>
-              );
-            })}
-
-          {/* Add Column — visual; column create is wired via API but no inline
-              composer yet. TODO(BE)/TODO(FE): inline column composer. */}
-          <button
-            type="button"
-            disabled
-            className="flex h-fit w-72 shrink-0 items-center justify-center gap-2 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground"
-          >
-            <Plus className="size-4" />
-            Add Column
-          </button>
-        </div>
+        <ColumnsList
+          workspaceId={workspaceId}
+          boardId={boardId}
+          columns={columns}
+          cardsByColumn={cardsByColumn}
+          refetch={refetch}
+          onCardClick={(card) => setDetailsCard(card)}
+          onAddTaskClick={(col) => setCreateForColumn(col)}
+          onDragStartCard={(cardId) => setDraggingCardId(cardId)}
+          onDragEndCard={() => setDraggingCardId(null)}
+          dragOverColumnId={dragOverColumnId}
+          setDragOverColumnId={setDragOverColumnId}
+          handleDrop={handleDrop}
+        />
       )}
 
       {/* Create Task drawer */}
@@ -239,6 +174,16 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
         card={detailsCard}
         open={Boolean(detailsCard)}
         onOpenChange={(open) => !open && setDetailsCard(null)}
+      />
+
+      {/* Manage Columns Dialog */}
+      <ManageColumnsDialog
+        workspaceId={workspaceId}
+        boardId={boardId}
+        columns={columns}
+        open={manageColumnsOpen}
+        onOpenChange={setManageColumnsOpen}
+        refetch={refetch}
       />
     </div>
   );
@@ -272,18 +217,64 @@ function BoardSkeleton() {
   );
 }
 
-function EmptyBoard() {
+function EmptyBoard({
+  workspaceId,
+  boardId,
+  refetch,
+}: {
+  workspaceId: string;
+  boardId: string;
+  refetch: () => void;
+}) {
+  const [isCreating, setIsCreating] = useState(false);
+  const [name, setName] = useState("");
+  const { createColumn, isSubmitting } = useColumnActions(workspaceId, boardId, refetch);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    const col = await createColumn({ name: name.trim(), position: 1 });
+    if (col) {
+      setName("");
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
       <div className="flex size-14 items-center justify-center rounded-full bg-muted">
         <KanbanSquare className="size-7 text-muted-foreground/70" />
       </div>
       <p className="text-base font-medium text-foreground">No columns yet</p>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        This board has no columns. Columns and tasks will appear here once the
-        board service is connected.
+      <p className="max-w-sm text-sm text-muted-foreground mb-2">
+        Get started by creating a column (e.g., &quot;To Do&quot;, &quot;In Progress&quot;, &quot;Completed&quot;).
       </p>
-      {/* TODO(BE): gateway board/column/card REST not implemented yet. */}
+      {isCreating ? (
+        <div className="flex items-center gap-2 max-w-xs">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Column name..."
+            className="h-9"
+            autoFocus
+            disabled={isSubmitting}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void handleCreate();
+              if (e.key === "Escape") setIsCreating(false);
+            }}
+          />
+          <Button size="sm" onClick={handleCreate} disabled={isSubmitting}>
+            {isSubmitting ? "Adding..." : "Add"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setIsCreating(false)} disabled={isSubmitting}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button onClick={() => setIsCreating(true)} className="gap-2">
+          <Plus className="size-4" />
+          Create Column
+        </Button>
+      )}
     </div>
   );
 }

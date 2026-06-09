@@ -123,6 +123,10 @@ export interface ReorderColumnRequest {
   position: number;
 }
 
+export interface BulkReorderColumnsRequest {
+  columns: { columnId: string; position: number }[];
+}
+
 /* ------------------------------ Cards requests ---------------------------- */
 
 export interface ListCardsResponse {

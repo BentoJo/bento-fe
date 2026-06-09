@@ -7,7 +7,9 @@ import type {
   ListColumnsResponse,
   ReorderColumnRequest,
   UpdateColumnRequest,
+  BulkReorderColumnsRequest,
 } from "@/features/boards/types/board";
+import { unwrap } from "@/shared/lib/api/unwrap";
 
 /**
  * Columns API (EXPECTED gateway @Controller('workspace/:wid/boards/:boardId/columns'),
@@ -35,7 +37,7 @@ export async function listColumns(
     const res = await getClientAxios().get<ApiEnvelope<ListColumnsResponse>>(
       columnsPath(workspaceId, boardId),
     );
-    return res.data.data;
+    return unwrap<ListColumnsResponse>(res);
   } catch (error) {
     fail(error, "Failed to load columns.");
   }
@@ -51,7 +53,7 @@ export async function createColumn(
       columnsPath(workspaceId, boardId),
       body,
     );
-    return res.data.data;
+    return unwrap<Column>(res);
   } catch (error) {
     fail(error, "Failed to create column.");
   }
@@ -68,7 +70,7 @@ export async function updateColumn(
       `${columnsPath(workspaceId, boardId)}/${columnId}`,
       body,
     );
-    return res.data.data;
+    return unwrap<Column>(res);
   } catch (error) {
     fail(error, "Failed to update column.");
   }
@@ -101,5 +103,20 @@ export async function reorderColumn(
     );
   } catch (error) {
     fail(error, "Failed to reorder column.");
+  }
+}
+
+export async function bulkReorderColumns(
+  workspaceId: string,
+  boardId: string,
+  body: BulkReorderColumnsRequest,
+): Promise<void> {
+  try {
+    await getClientAxios().post(
+      `${columnsPath(workspaceId, boardId)}/reorder`,
+      body,
+    );
+  } catch (error) {
+    fail(error, "Failed to bulk reorder columns.");
   }
 }
