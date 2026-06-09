@@ -10,16 +10,17 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
+import { cairo } from "@/shared/lib/fonts";
+import Email from "next-auth/providers/email";
+import EmailIcon from "@/shared/components/svgs/EmailIcon";
+import { Button } from "@/shared/components/ui/button";
+import Notifications from "@/shared/components/svgs/Notification";
+import DoneIcon from "@/shared/components/svgs/DoneIcon";
+import { useState } from "react";
 
-/**
- * Notifications tab (design: image copy 15).
- *
- * TODO(BE): no notifications endpoint. Every toggle is UI-only and disabled —
- * no state is persisted and no fake data is shown.
- *
- * "@/shared/components/ui/switch" does not exist in this project (and we must
- * not run the shadcn CLI), so we render a small styled, disabled toggle.
- */
+
+
+
 
 interface ToggleItem {
   id: string;
@@ -103,83 +104,160 @@ const IN_APP_NOTIFICATIONS: ToggleItem[] = [
   },
 ];
 
+const initialSettings = [
+  ...EMAIL_NOTIFICATIONS,
+  ...IN_APP_NOTIFICATIONS,
+].reduce(
+  (acc, item) => ({
+    ...acc,
+    [item.id]: item.defaultOn ?? false,
+  }),
+  {}
+);
+
 export function NotificationsTab() {
+
+  const [settings, setSettings] = useState(initialSettings);
+
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-            <Mail className="size-5 text-primary" />
-            Email Notifications
-          </CardTitle>
-          <CardDescription>
-            Manage which emails updates and alerts you want to receive.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ToggleGrid items={EMAIL_NOTIFICATIONS} />
-        </CardContent>
-      </Card>
+    <Card className="overflow-hidden rounded-[12px] border border-[#E2E8F0] bg-white shadow-none">
+      <CardContent className="p-0">
 
-      <Card className="bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-            <Bell className="size-5 text-primary" />
-            In-App Notifications
-          </CardTitle>
-          <CardDescription>
-            Control notifications displayed inside your workspace.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ToggleGrid items={IN_APP_NOTIFICATIONS} />
-        </CardContent>
-      </Card>
+        {/* Email Notifications */}
+        <section className="px-8 pt-8">
+          <div className="mb-8">
+            <div className="flex items-center gap-2">
+              <EmailIcon className="size-5 text-[#334155]" />
 
-      <p className="text-xs text-muted-foreground">
-        Notification preferences are not editable yet — this is a preview.
-      </p>
-    </div>
+              <h2
+                className={`${cairo.className} text-[24px] font-bold text-[#0F172A]`}
+              >
+                Email Notifications
+              </h2>
+            </div>
+
+            <p className="mt-1 pl-7 text-[12px] text-[#64748B]">
+              Manage which email updates and alerts you want to receive.
+            </p>
+          </div>
+
+          <ToggleGrid
+            items={EMAIL_NOTIFICATIONS}
+            settings={settings}
+            setSettings={setSettings}
+          />
+        </section>
+
+        <div className="mx-8 my-8 border-t border-[#E2E8F0]" />
+
+        {/* In-App Notifications */}
+        <section className="px-8 pb-8">
+          <div className="mb-8">
+            <div className="flex items-center gap-2">
+              <Notifications className="size-5 text-[#0F172A]" fill="#0F172A" />
+
+              <h2
+                className={`${cairo.className} text-[24px] font-bold text-[#0F172A]`}
+              >
+                In-App Notifications
+              </h2>
+            </div>
+
+            <p className="mt-1 pl-7 text-[12px] text-[#64748B]">
+              Control notifications displayed inside your workspace.
+            </p>
+          </div>
+
+          <ToggleGrid
+            items={IN_APP_NOTIFICATIONS}
+            settings={settings}
+            setSettings={setSettings}
+          />
+        </section>
+
+        <div className="border-t border-[#E2E8F0] px-8 py-4 mx-8">
+          <div className="flex justify-end">
+
+            <Button className="h-10 gap-2 rounded-[8px] bg-[#2563EB] pl-3 pr-4 text-white hover:bg-[#1D4ED8]">
+              <DoneIcon />
+              Save Notification Settings
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
-
-function ToggleGrid({ items }: { items: ToggleItem[] }) {
+function ToggleGrid({
+  items,
+  settings,
+  setSettings,
+}: {
+  items: ToggleItem[];
+  settings: Record<string, boolean>;
+  setSettings: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
+}) {
   return (
-    <div className="grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2">
+    <div className="relative grid grid-cols-2 gap-x-10 gap-y-8">
       {items.map((item) => (
-        <ToggleRow key={item.id} item={item} />
+        <ToggleRow
+          key={item.id}
+          item={item}
+          enabled={settings[item.id]}
+          onToggle={() =>
+            setSettings((prev) => ({
+              ...prev,
+              [item.id]: !prev[item.id],
+            }))
+          }
+        />
       ))}
     </div>
   );
 }
 
-function ToggleRow({ item }: { item: ToggleItem }) {
+function ToggleRow({
+  item,
+  enabled,
+  onToggle,
+}: {
+  item: ToggleItem;
+  enabled: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-card-foreground">
+      <div className="max-w-[280px]">
+        <p
+          className={`${cairo.className} text-[14px] font-bold text-[#0F172A]`}
+        >
           {item.label}
         </p>
-        <p className="text-xs text-muted-foreground">{item.description}</p>
+
+        <p className="mt-1 text-[11px] leading-[16px] text-[#64748B]">
+          {item.description}
+        </p>
       </div>
-      {/* UI-only, disabled toggle — TODO(BE): no notifications endpoint. */}
-      <span
+
+      <button
+        type="button"
         role="switch"
-        aria-checked={Boolean(item.defaultOn)}
-        aria-disabled="true"
-        aria-label={item.label}
+        aria-checked={enabled}
+        onClick={onToggle}
         className={cn(
-          "relative inline-flex h-5 w-9 shrink-0 cursor-not-allowed items-center rounded-full opacity-60 transition-colors",
-          item.defaultOn ? "bg-primary" : "bg-muted-foreground/30",
+          "relative mt-1 h-6 w-12 shrink-0 rounded-full transition-colors",
+          enabled ? "bg-[#2563EB]" : "bg-[#DBEAFE]"
         )}
       >
         <span
           className={cn(
-            "inline-block size-4 rounded-full bg-background shadow transition-transform",
-            item.defaultOn ? "translate-x-4" : "translate-x-0.5",
+            "absolute top-[3px] h-[18px] w-5 rounded-full bg-white transition-all",
+           enabled ? "right-[2px]" : "left-[2px]"
           )}
         />
-      </span>
+      </button>
     </div>
   );
 }
