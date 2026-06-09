@@ -27,7 +27,7 @@ interface WorkspaceSettingsProps {
 
 export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
   return (
-    <div className={`${cairo.className} flex flex-col gap-4 p-6 bg-[#F8FAFC] min-h-screen`}>
+    <div className={`${cairo.className} flex flex-col gap-4 p-6 mx-16  bg-[#F8FAFC] min-h-screen`}>
 
       {/* ── Breadcrumb ── */}
       <nav className="flex items-center gap-1 text-[13px]">
