@@ -81,7 +81,7 @@ export default function Column({
 
       {/* Cards List */}
       {cards.length > 0 ? (
-        <div className="flex flex-col space-y-3 p-3 overflow-y-auto max-h-[calc(100vh-280px)] pr-0.5">
+        <div className="flex flex-col space-y-3 p-3 overflow-y-auto max-h-[calc(100vh-280px)] px-1.5">
           {cards.map((card) => (
             <TaskCard
               key={card.id}

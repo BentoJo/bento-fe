@@ -13,10 +13,6 @@ interface WorkspaceShellProps {
   children: React.ReactNode;
 }
 
-/**
- * App shell for the inside-a-workspace experience:
- * dark navy sidebar + a light main column (topbar + page content).
- */
 export function WorkspaceShell({
   workspaceId,
   user,

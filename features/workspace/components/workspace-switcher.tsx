@@ -39,7 +39,7 @@ export function WorkspaceSwitcher({
           type="button"
           className={cn(
             "flex items-center rounded-lg py-2.5",
-            "bg-sidebar-accent/40 text-left text-sm transition-colors hover:bg-sidebar-accent/60",
+            "bg-sidebar-accent/40 text-left text-sm transition-colors hover:bg-sidebar-accent/60 cursor-pointer",
             collapsed
               ? "size-10 justify-center px-0"
               : "w-full justify-between px-3",
@@ -93,7 +93,7 @@ export function WorkspaceSwitcher({
             <DropdownMenuItem
               key={w.id}
               onSelect={() => router.push(`/w/${w.id}`)}
-              className="gap-2"
+              className="gap-2 cursor-pointer"
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded bg-muted text-[10px] font-semibold">
                 {w.name.charAt(0).toUpperCase()}
@@ -106,11 +106,11 @@ export function WorkspaceSwitcher({
           ))
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => router.push("/home")} className="gap-2">
+        <DropdownMenuItem onSelect={() => router.push("/home")} className="gap-2 cursor-pointer">
           <LayoutGrid className="size-4" />
           All workspaces
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => router.push("/home")} className="gap-2">
+        <DropdownMenuItem onSelect={() => router.push("/home")} className="gap-2 cursor-pointer">
           <Plus className="size-4" />
           Create workspace
         </DropdownMenuItem>

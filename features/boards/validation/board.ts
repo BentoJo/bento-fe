@@ -36,6 +36,8 @@ export const taskSchema = z.object({
     .or(z.literal("")),
   status: z.string().optional(),
   isPrivate: z.boolean(),
+  visibility: z.enum(["public", "private"]),
+  priority: z.enum(["low", "medium", "high"]).optional(),
   recurring: z.string().optional(),
   startDate: z.string().optional().or(z.literal("")),
   dueDate: z.string().optional().or(z.literal("")),

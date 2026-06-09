@@ -99,21 +99,22 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
 
           {/* Header actions */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2" disabled>
+            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
               <Eye className="size-4" />
               View All Sprints
             </Button>
-            <Button variant="outline" size="sm" className="gap-2" disabled>
+            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
               <Filter className="size-4" />
               Filter
             </Button>
-            <Button variant="outline" size="sm" className="gap-2" disabled>
+            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
               <ListFilter className="size-4" />
               Sort
             </Button>
             <Button
               size="sm"
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80 cursor-pointer"
+              variant="outline"
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80 hover:text-white cursor-pointer"
               onClick={() => setManageColumnsOpen(true)}
             >
               <Columns3 className="size-4" />
