@@ -78,7 +78,7 @@ export function AppTopbar({ user }: { user: TopbarUser }) {
             "transition-colors hover:bg-[#F8FAFC]",
           )}
         >
-          <Notifications className="size-4" />
+          <Notifications className="size-4" fill="#2563EB" />
         </button>
 
         <Avatar className="size-10">

@@ -15,6 +15,11 @@ import { Button } from "@/shared/components/ui/button";
 import { logoutAllDevices } from "@/features/settings/api/account";
 import { getErrorMessage } from "@/shared/types/api/errors";
 import User_online from "@/shared/components/svgs/User_online";
+import { cairo } from "@/shared/lib/fonts";
+import Laptop from "@/shared/components/svgs/Laptop";
+import LocationIcon from "@/shared/components/svgs/Location";
+import Timer from "@/shared/components/svgs/Timer";
+import LogoutIcon from "@/shared/components/svgs/Logout";
 
 /**
  * Sessions & Devices tab (design: image copy 12).
@@ -40,25 +45,38 @@ export function SessionsTab() {
   }
 
   return (
-    <Card className="bg-card shadow-sm">
-      <CardContent className="flex flex-col gap-8 p-6">
+    <Card className="border-[#E2E8F0] shadow-none rounded-[12px]">
+      <CardContent className="flex flex-col gap-6 p-6">
         {/* Active Session */}
         <section className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold text-card-foreground">
+          <h2 className="text-[24px] leading-[44px] font-bold text-[#0F172A]">
             Active Session
           </h2>
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-4">
-            <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <Monitor className="size-5" />
+          <div className="flex items-center justify-between gap-4 rounded-[12px] border border-border p-6">
+            <div className="flex items-center gap-4">
+              <span className="flex size-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Laptop className="size-6" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-card-foreground">
-                  This device
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Your current browser session
-                </p>
+                <div className="flex flex-col gap-2">
+                  <p className={`  ${cairo.className} text-[16px] font-bold text-card-foreground`}>
+                    This device
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex gap-1">
+                      <LocationIcon />
+                      <p className="text-xs text-muted-foreground">
+                        Jordan ,  Amman
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Timer />
+                      <p className="text-xs text-muted-foreground">
+                        Just Now
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex gap-2 items-center">
@@ -74,7 +92,7 @@ export function SessionsTab() {
         {/* Connected Devices */}
         <section className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-bold text-card-foreground">
+            <h2 className="text-[24px] font-bold text-card-foreground">
               Connected Devices
             </h2>
             <Button
@@ -86,7 +104,7 @@ export function SessionsTab() {
               {isLoggingOut ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <LogOut className="size-4" />
+                <LogoutIcon className="size-4" fill="#2563EB" />
               )}
               Log Out All Devices
             </Button>

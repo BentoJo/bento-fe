@@ -18,6 +18,7 @@ import DoneIcon from "@/shared/components/svgs/DoneIcon";
 import Session from "@/shared/components/svgs/Session";
 import Notifications from "@/shared/components/svgs/Notification";
 import UsersIcon from "@/shared/components/svgs/UsersIcon";
+import Notifications_Tab from "@/shared/components/svgs/Notification_Tab";
 
 
 interface WorkspaceSettingsProps {
@@ -53,18 +54,18 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
           {[
             { value: "workspace", label: "Workspace", Icon: WorkspaceIcon },
             { value: "sessions", label: "Sessions & Devices", Icon: Session },
-            { value: "notifications", label: "Notifications", Icon: Notifications },
+            { value: "notifications", label: "Notifications", Icon: Notifications_Tab},
             { value: "members", label: "Members & Permissions", Icon: UsersIcon },
           ].map(({ value, label, Icon }) => (
             <TabsTrigger
               key={value}
               value={value}
               className={cn(
-                "gap-2 px-5 py-3.5 text-[13px] font-semibold rounded-none",
+                "gap-2 px-5 py-3.5 text-[16px] font-semibold rounded-none",
                 value === "workspace" && "rounded-tl-[10px]"
               )}
             >
-              <Icon className="size-4 shrink-0 text-[#2563EB]" fill="none" />
+              <Icon className="size- shrink-0 text-[#2563EB]" fill="64748B" />
               {label}
             </TabsTrigger>
           ))}
@@ -219,7 +220,7 @@ function DangerZoneCard() {
           <span className="text-[12px] text-[#64748B]">Receive notifications when a task is assigned to you.</span>
         </div>
         <button className="p-2 rounded-lg hover:bg-[#FEF2F2] transition-colors">
-          <LogoutIcon className="size-5 text-[#EF4444]" />
+          <LogoutIcon className="size-5 text-[#EF4444] " width={24} height={24} />
         </button>
       </div>
 
