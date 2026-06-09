@@ -38,7 +38,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 import LabelIcon from "@/shared/components/svgs/Label";
 
-interface CreateTaskDrawerProps {
+interface TaskDrawerProps {
   workspaceId: string;
   boardId: string;
   column: Column | null;
@@ -83,7 +83,7 @@ function emptyValues(statusId?: string): TaskFormValues {
   };
 }
 
-export function CreateTaskDrawer({
+export function TaskDrawer({
   workspaceId,
   boardId,
   column,
@@ -94,7 +94,7 @@ export function CreateTaskDrawer({
   cardToEdit = null,
   onCreated,
   onUpdated,
-}: CreateTaskDrawerProps) {
+}: TaskDrawerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { control, handleSubmit, reset, setError } = useForm<TaskFormValues>({

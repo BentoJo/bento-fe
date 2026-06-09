@@ -209,7 +209,7 @@ function BoardCard({
   return (
     <Card
       onClick={handleNavigate}
-      className="group relative overflow-hidden bg-card py-4 shadow-sm transition-shadow cursor-pointer hover:shadow-md"
+      className="group w-full max-w-75 relative overflow-hidden bg-card py-4 transition-shadow cursor-pointer"
     >
       {/* HEADER */}
       <CardHeader className="relative z-10 flex flex-row items-start justify-between gap-2 pb-2">

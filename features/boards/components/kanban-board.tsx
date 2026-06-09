@@ -17,7 +17,7 @@ import { useBoard } from "@/features/boards/hooks/use-board";
 import { useCardActions } from "@/features/boards/hooks/use-card";
 import { useColumnActions } from "@/features/boards/hooks/use-column";
 import type { Card, Column } from "@/features/boards/types/board";
-import { CreateTaskDrawer } from "@/features/boards/components/create-task-drawer";
+import { TaskDrawer } from "@/features/boards/components/task-drawer";
 import { TaskDetailsDialog } from "@/features/boards/components/task-details-dialog";
 import { ColumnsList } from "@/features/boards/components/columns-list";
 import { ManageColumnsDialog } from "@/features/boards/components/manage-columns-dialog";
@@ -192,7 +192,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
       )}
 
       {/* Create / Edit Task drawer */}
-      <CreateTaskDrawer
+      <TaskDrawer
         mode={taskDrawer.mode}
         cardToEdit={taskDrawer.card}
         workspaceId={workspaceId}
