@@ -92,7 +92,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
                 {boardName}
               </h1>
               <p className="text-xs text-muted-foreground">
-                {board?.visibility === "private" ? "Private board" : "Public board"}
+                {board?.isPrivate === true ? "Private board" : "Public board"}
               </p>
             </div>
           </div>

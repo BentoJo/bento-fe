@@ -52,9 +52,9 @@ const RECURRING_OPTIONS = ["None", "Daily", "Weekly", "Monthly"];
 function emptyValues(statusId?: string): TaskFormValues {
   return {
     title: "",
-    description: "",
+    descriptionText: "",
     status: statusId ?? "",
-    visibility: "public",
+    isPrivate: false,
     recurring: "None",
     startDate: "",
     dueDate: "",
@@ -108,10 +108,10 @@ export function CreateTaskDrawer({
     const body: CreateCardRequest = {
       columnId,
       title: parsed.data.title,
-      ...(parsed.data.description?.trim()
-        ? { description: parsed.data.description.trim() }
+      ...(parsed.data.descriptionText?.trim()
+        ? { description: parsed.data.descriptionText.trim() }
         : {}),
-      visibility: parsed.data.visibility,
+      isPrivate: parsed.data.isPrivate,
       ...(parsed.data.startDate ? { startDate: parsed.data.startDate } : {}),
       ...(parsed.data.dueDate ? { dueDate: parsed.data.dueDate } : {}),
     };
@@ -171,7 +171,7 @@ export function CreateTaskDrawer({
           />
 
           <Controller
-            name="description"
+            name="descriptionText"
             control={control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
@@ -251,25 +251,28 @@ export function CreateTaskDrawer({
 
           {/* Visibility toggle */}
           <Controller
-            name="visibility"
+            name="isPrivate"
             control={control}
             render={({ field }) => (
               <Field>
                 <FieldLabel>Visibility</FieldLabel>
                 <div className="grid grid-cols-2 gap-2">
-                  {(["public", "private"] as const).map((v) => (
+                  {[
+                    { value: false, label: "public" },
+                    { value: true, label: "private" },
+                  ].map((v) => (
                     <button
-                      key={v}
+                      key={String(v.value)}
                       type="button"
-                      onClick={() => field.onChange(v)}
+                      onClick={() => field.onChange(v.value)}
                       className={cn(
                         "rounded-lg border px-3 py-2 text-sm font-medium capitalize transition-colors",
-                        field.value === v
+                        field.value === v.value
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {v}
+                      {v.label}
                     </button>
                   ))}
                 </div>

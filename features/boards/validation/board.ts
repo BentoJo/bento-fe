@@ -28,14 +28,14 @@ export const taskSchema = z.object({
     .trim()
     .min(1, "Task title is required.")
     .max(200, "Task title must be 200 characters or fewer."),
-  description: z
+  descriptionText: z
     .string()
     .trim()
     .max(2000, "Description must be 2000 characters or fewer.")
     .optional()
     .or(z.literal("")),
   status: z.string().optional(),
-  visibility: z.enum(["public", "private"]),
+  isPrivate: z.boolean(),
   recurring: z.string().optional(),
   startDate: z.string().optional().or(z.literal("")),
   dueDate: z.string().optional().or(z.literal("")),
