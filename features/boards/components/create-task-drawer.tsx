@@ -6,7 +6,11 @@ import { ClipboardList, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createCard } from "@/features/boards/api/cards";
-import type { Column, CreateCardRequest } from "@/features/boards/types/board";
+import type {
+  CardPriority,
+  Column,
+  CreateCardRequest,
+} from "@/features/boards/types/board";
 import {
   taskSchema,
   type TaskFormValues,
@@ -15,7 +19,6 @@ import { getErrorMessage } from "@/shared/types/api/errors";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
@@ -31,6 +34,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { cn } from "@/shared/lib/utils";
+import LabelIcon from "@/shared/components/svgs/Label";
 
 interface CreateTaskDrawerProps {
   workspaceId: string;
@@ -45,12 +49,28 @@ interface CreateTaskDrawerProps {
 
 const RECURRING_OPTIONS = ["None", "Daily", "Weekly", "Monthly"];
 
+const PRIORITY_STYLES: Record<CardPriority, string> = {
+  low: "bg-success/10 border-[#89D3A0] text-[#008447]",
+  medium: "bg-warning/10 border-[#FFD78D] text-[#F54900]",
+  high: "bg-destructive/10 border-[#FF8B7C] text-[#B30909]",
+};
+
+const PRIORITY_LABEL: Record<CardPriority, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
+const PRIORITY_BASE_STYLE =
+  "bg-transparent border border-border text-foreground hover:bg-muted/40";
+
 function emptyValues(statusId?: string): TaskFormValues {
   return {
     title: "",
     description: "",
     status: statusId ?? "",
     visibility: "public",
+    priority: "medium",
     recurring: "None",
     startDate: "",
     dueDate: "",
@@ -108,6 +128,7 @@ export function CreateTaskDrawer({
         ? { description: parsed.data.description.trim() }
         : {}),
       visibility: parsed.data.visibility,
+      priority: parsed.data.priority,
       ...(parsed.data.startDate ? { startDate: parsed.data.startDate } : {}),
       ...(parsed.data.dueDate ? { dueDate: parsed.data.dueDate } : {}),
     };
@@ -129,8 +150,8 @@ export function CreateTaskDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<DialogContent
-  className="
+      <DialogContent
+        className="
     fixed
     bottom-3
     right-3
@@ -150,11 +171,11 @@ export function CreateTaskDrawer({
 
     rounded-2xl
     p-0
-
+    gap-0
     data-[state=open]:slide-in-from-bottom-2
     data-[state=closed]:slide-out-to-bottom-2
   "
->
+      >
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <ClipboardList className="size-8 bg-primary/10 p-2 rounded-sm text-primary" />
@@ -204,7 +225,8 @@ export function CreateTaskDrawer({
             )}
           />
 
-          <p className="text-sm font-semibold text-foreground">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <LabelIcon className="size-5" />
             Task Properties
           </p>
 
@@ -293,31 +315,67 @@ export function CreateTaskDrawer({
             )}
           />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Controller
-              name="startDate"
-              control={control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor="task-start">
-                    Start Date (Optional)
-                  </FieldLabel>
-                  <Input {...field} id="task-start" type="date" />
-                </Field>
-              )}
-            />
-            <Controller
-              name="dueDate"
-              control={control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor="task-due">Due Date</FieldLabel>
-                  <Input {...field} id="task-due" type="date" />
-                </Field>
-              )}
-            />
-          </div>
+          <Controller
+            name="startDate"
+            control={control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="task-start">
+                  Start Date (Optional)
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id="task-start"
+                  type="date"
+                  className="border border-[#E2EBF6] rounded-lg p-4 h-12"
+                />
+              </Field>
+            )}
+          />
+          <Controller
+            name="dueDate"
+            control={control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="task-due">Due Date</FieldLabel>
+                <Input
+                  {...field}
+                  id="task-due"
+                  type="date"
+                  className="border border-[#E2EBF6] rounded-lg p-4 h-12"
+                />
+              </Field>
+            )}
+          />
+          <Controller
+            name="priority"
+            control={control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel>Priority</FieldLabel>
 
+                <div className="grid grid-cols-3 gap-2">
+                  {(["low", "medium", "high"] as const).map((v) => {
+                    const isActive = field.value === v;
+
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => field.onChange(v)}
+                        className={cn(
+                          "rounded-lg px-3 py-2 text-sm cursor-pointer font-semibold capitalize transition-colors",
+                          isActive ? PRIORITY_STYLES[v] : PRIORITY_BASE_STYLE,
+                        )}
+                      >
+                        {PRIORITY_LABEL[v]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+            )}
+          />
           <div className="sticky bottom-0 -mx-5 mt-2 flex justify-end gap-3 border-t border-border bg-popover px-5 py-4">
             <Button
               type="button"
