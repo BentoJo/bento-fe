@@ -16,19 +16,15 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { OverviewStats } from "@/features/workspace/components/overview-stats";
-import { BoardsPreview } from "@/features/workspace/components/boards-preview";
 import { useWorkspaceOverview } from "@/features/workspace/hooks/use-workspace-overview";
 import { cairo } from "@/shared/lib/fonts";
 import Switch from "@/shared/components/svgs/Switch";
-import { Cairo } from "next/font/google";
 import Edit from "@/shared/components/svgs/Edit";
 import Dashboard from "@/shared/components/svgs/Dashboard";
 import { ActiveMembersPanel } from "./active-member-panel";

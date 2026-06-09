@@ -27,13 +27,7 @@ const GLOBAL_ITEMS: NavItem[] = [
     href: "/invitations",
     icon: MailOpen,
     match: ["/invitations"],
-  },
-  {
-    label: "Report Problem",
-    href: "/report-problem",
-    icon: Report,
-    match: ["/report-problem"],
-  },
+  }
 ];
 
 export function GlobalSidebar() {
@@ -45,7 +39,7 @@ export function GlobalSidebar() {
     <aside
       className={cn(
         "m-3 flex h-[calc(100vh-24px)] shrink-0 flex-col overflow-hidden rounded-[16px] bg-[#010D1E] px-6 py-4 text-white transition-[width,padding] duration-300 ease-in-out",
-        collapsed ? "w-[88px] px-4" : "w-[280px]",
+        collapsed ? "w-22 px-4" : "w-70",
       )}
     >
       <div
@@ -57,7 +51,7 @@ export function GlobalSidebar() {
         <div
           className={cn(
             "overflow-hidden transition-all duration-300",
-            collapsed ? "w-0 opacity-0" : "w-[150px] opacity-100",
+            collapsed ? "w-0 opacity-0" : "w-37.5 opacity-100",
           )}
         >
           <BrandLogo width={150} height={37} />
@@ -100,6 +94,25 @@ export function GlobalSidebar() {
         </ul>
 
         <div className="mt-auto pb-2">
+          <Link
+            type="button"
+            href="/report-problem"
+            title={collapsed ? "Logout" : undefined}
+            className={cn(
+              "flex h-[42px] w-full items-center rounded-[8px] text-[#94A3B8] transition-all duration-200 hover:bg-white/5 hover:text-white disabled:pointer-events-none disabled:opacity-60 cursor-pointer",
+              collapsed ? "justify-center px-0" : "gap-3 px-3",
+            )}
+          >
+            <Report />
+            <span
+              className={cn(
+                "overflow-hidden whitespace-nowrap text-[16px] font-semibold leading-none transition-all duration-200",
+                collapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+              )}
+            >
+              Report a Problem
+            </span>
+          </Link>
           <button
             type="button"
             onClick={logout}

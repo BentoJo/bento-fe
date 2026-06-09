@@ -22,11 +22,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "@/shared/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -133,18 +129,37 @@ export function CreateTaskDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        // Override the centered dialog into a right-side drawer.
-        className="top-0 left-auto right-0 h-dvh max-h-dvh w-full max-w-md translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none rounded-l-2xl p-0 sm:max-w-md data-open:slide-in-from-right data-closed:slide-out-to-right"
-      >
+<DialogContent
+  className="
+    fixed
+    bottom-3
+    right-3
+    left-auto
+    top-auto
+
+    translate-x-0
+    translate-y-0
+
+    w-full
+    max-w-md
+    max-h-[calc(100vh-10rem)]
+
+    overflow-y-auto
+
+    flex flex-col
+
+    rounded-2xl
+    p-0
+
+    data-[state=open]:slide-in-from-bottom-2
+    data-[state=closed]:slide-out-to-bottom-2
+  "
+>
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <ClipboardList className="size-5 text-primary" />
+            <ClipboardList className="size-8 bg-primary/10 p-2 rounded-sm text-primary" />
             Create New Task
           </DialogTitle>
-          <DialogDescription>
-            Add a task to {column?.name ? `"${column.name}"` : "this board"}.
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-5 p-5">
@@ -182,6 +197,7 @@ export function CreateTaskDrawer({
                   placeholder="Provide details about this task..."
                   rows={4}
                   aria-invalid={fieldState.invalid}
+                  className="min-h-70"
                 />
                 <FieldError errors={[fieldState.error]} />
               </Field>
