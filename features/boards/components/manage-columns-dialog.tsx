@@ -99,7 +99,7 @@ export function ManageColumnsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3 py-4 max-h-[300px] overflow-y-auto">
+        <div className="flex flex-col gap-3 py-4 max-h-75 overflow-y-auto">
           {localColumns.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-6">
               No columns to manage.

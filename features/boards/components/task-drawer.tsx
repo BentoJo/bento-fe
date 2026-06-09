@@ -101,7 +101,6 @@ export function TaskDrawer({
     defaultValues: emptyValues(),
   });
 
-  // Populate form when opening in either mode
   useEffect(() => {
     if (!open) return;
 
@@ -208,231 +207,243 @@ export function TaskDrawer({
           translate-y-0
           w-full
           max-w-md
-          max-h-[calc(100vh-10rem)]
-          overflow-y-auto
+          max-h-[calc(100vh-5rem)]
           flex flex-col
           rounded-2xl
           p-0
           gap-0
+          overflow-hidden
           data-[state=open]:slide-in-from-bottom-2
           data-[state=closed]:slide-out-to-bottom-2
         "
       >
-        <DialogHeader className="border-b border-border p-5">
+        <DialogHeader className="border-b border-border p-5 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <ClipboardList className="size-8 bg-primary/10 p-2 rounded-sm text-primary" />
             {isEditing ? "Edit Task" : "Create New Task"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="flex flex-col gap-5 p-5">
-          <p className="text-sm font-semibold text-foreground">
-            General Information
-          </p>
+        <form onSubmit={onSubmit} className="flex-1 flex flex-col overflow-hidden">
+          {/* Scrollable Form Body Container with Hidden Scrollbar */}
+          <div 
+            className="
+              flex-1 
+              overflow-y-auto 
+              p-5 
+              flex 
+              flex-col 
+              gap-5
+              [scrollbar-width:none] 
+              [&::-webkit-scrollbar]:hidden
+            "
+          >
+            <p className="text-sm font-semibold text-foreground">
+              General Information
+            </p>
 
-          <Controller
-            name="title"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="task-title">Task Title</FieldLabel>
-                <Input
-                  {...field}
-                  id="task-title"
-                  placeholder="e.g. Redesign Landing Page"
-                  autoFocus
-                  aria-invalid={fieldState.invalid}
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="descriptionText"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="task-description">Description</FieldLabel>
-                <Textarea
-                  {...field}
-                  id="task-description"
-                  placeholder="Provide details about this task..."
-                  rows={4}
-                  aria-invalid={fieldState.invalid}
-                  className="min-h-70"
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <LabelIcon className="size-5" />
-            Task Properties
-          </p>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* Status = column */}
             <Controller
-              name="status"
+              name="title"
               control={control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel>Status</FieldLabel>
-                  <Select
-                    value={field.value || undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {columns.length === 0 ? (
-                        <SelectItem value="__none" disabled>
-                          No columns
-                        </SelectItem>
-                      ) : (
-                        columns.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="task-title">Task Title</FieldLabel>
+                  <Input
+                    {...field}
+                    id="task-title"
+                    placeholder="e.g. Redesign Landing Page"
+                    className="border border-[#E2EBF6] rounded-lg p-4 h-12"
+                    autoFocus
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="descriptionText"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="task-description">Description</FieldLabel>
+                  <Textarea
+                    {...field}
+                    id="task-description"
+                    placeholder="Provide details about this task..."
+                    rows={4}
+                    aria-invalid={fieldState.invalid}
+                    className="min-h-70"
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+
+            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <LabelIcon className="size-5" />
+              Task Properties
+            </p>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel>Status</FieldLabel>
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select column" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.length === 0 ? (
+                          <SelectItem value="__none" disabled>
+                            No columns
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
+                        ) : (
+                          columns.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="recurring"
+                control={control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel>Recurring (Optional)</FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RECURRING_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
+            </div>
+
+            <Controller
+              name="isPrivate"
+              control={control}
+              render={({ field }) => {
+                const options = [
+                  { value: false, label: "Public" },
+                  { value: true, label: "Private" },
+                ] as const;
+
+                return (
+                  <Field>
+                    <FieldLabel>Visibility</FieldLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      {options.map((opt) => {
+                        const isActive = field.value === opt.value;
+                        return (
+                          <button
+                            key={String(opt.value)}
+                            type="button"
+                            onClick={() => field.onChange(opt.value)}
+                            className={cn(
+                              "rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-colors",
+                              isActive
+                                ? opt.value
+                                  ? "border-destructive bg-destructive/10 text-destructive"
+                                  : "border-success bg-success/10 text-success"
+                                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </Field>
+                );
+              }}
             />
 
-            {/* Recurring — visual; not wired. TODO(BE). */}
             <Controller
-              name="recurring"
+              name="startDate"
               control={control}
               render={({ field }) => (
                 <Field>
-                  <FieldLabel>Recurring (Optional)</FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RECURRING_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel htmlFor="task-start">
+                    Start Date (Optional)
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="task-start"
+                    type="date"
+                    className="border border-[#E2EBF6] rounded-lg p-4 h-12"
+                  />
                 </Field>
               )}
             />
-          </div>
 
-          {/* Visibility toggle */}
-          <Controller
-            name="isPrivate"
-            control={control}
-            render={({ field }) => {
-              const options = [
-                { value: false, label: "Public" },
-                { value: true, label: "Private" },
-              ] as const;
-
-              return (
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
                 <Field>
-                  <FieldLabel>Visibility</FieldLabel>
+                  <FieldLabel htmlFor="task-due">Due Date</FieldLabel>
+                  <Input
+                    {...field}
+                    id="task-due"
+                    type="date"
+                    className="border border-[#E2EBF6] rounded-lg p-4 h-12"
+                  />
+                </Field>
+              )}
+            />
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {options.map((opt) => {
-                      const isActive = field.value === opt.value;
-
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>Priority</FieldLabel>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["low", "medium", "high"] as const).map((v) => {
+                      const isActive = field.value === v;
                       return (
                         <button
-                          key={String(opt.value)}
+                          key={v}
                           type="button"
-                          onClick={() => field.onChange(opt.value)}
+                          onClick={() => field.onChange(v)}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-colors",
-                            isActive
-                              ? opt.value
-                                ? "border-destructive bg-destructive/10 text-destructive"
-                                : "border-success bg-success/10 text-success"
-                              : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
+                            "rounded-lg px-3 py-2 text-sm cursor-pointer font-semibold capitalize transition-colors",
+                            isActive ? PRIORITY_STYLES[v] : PRIORITY_BASE_STYLE,
                           )}
                         >
-                          {opt.label}
+                          {PRIORITY_LABEL[v]}
                         </button>
                       );
                     })}
                   </div>
                 </Field>
-              );
-            }}
-          />
+              )}
+            />
+          </div>
 
-          <Controller
-            name="startDate"
-            control={control}
-            render={({ field }) => (
-              <Field>
-                <FieldLabel htmlFor="task-start">
-                  Start Date (Optional)
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="task-start"
-                  type="date"
-                  className="border border-[#E2EBF6] rounded-lg p-4 h-12"
-                />
-              </Field>
-            )}
-          />
-          <Controller
-            name="dueDate"
-            control={control}
-            render={({ field }) => (
-              <Field>
-                <FieldLabel htmlFor="task-due">Due Date</FieldLabel>
-                <Input
-                  {...field}
-                  id="task-due"
-                  type="date"
-                  className="border border-[#E2EBF6] rounded-lg p-4 h-12"
-                />
-              </Field>
-            )}
-          />
-          <Controller
-            name="priority"
-            control={control}
-            render={({ field }) => (
-              <Field>
-                <FieldLabel>Priority</FieldLabel>
-
-                <div className="grid grid-cols-3 gap-2">
-                  {(["low", "medium", "high"] as const).map((v) => {
-                    const isActive = field.value === v;
-
-                    return (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => field.onChange(v)}
-                        className={cn(
-                          "rounded-lg px-3 py-2 text-sm cursor-pointer font-semibold capitalize transition-colors",
-                          isActive ? PRIORITY_STYLES[v] : PRIORITY_BASE_STYLE,
-                        )}
-                      >
-                        {PRIORITY_LABEL[v]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-            )}
-          />
-          <div className="sticky bottom-0 -mx-5 mt-2 flex justify-end gap-3 border-t border-border bg-popover px-5 py-4">
+          {/* Locked Static Footer */}
+          <div className="flex justify-end gap-3 border-t border-border bg-popover px-5 py-4 flex-shrink-0">
             <Button
               type="button"
               variant="outline"
