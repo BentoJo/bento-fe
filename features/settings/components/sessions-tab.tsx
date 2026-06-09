@@ -14,6 +14,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { logoutAllDevices } from "@/features/settings/api/account";
 import { getErrorMessage } from "@/shared/types/api/errors";
+import User_online from "@/shared/components/svgs/User_online";
 
 /**
  * Sessions & Devices tab (design: image copy 12).
@@ -60,9 +61,13 @@ export function SessionsTab() {
                 </p>
               </div>
             </div>
-            <span className="text-sm font-medium text-emerald-600">
-              Current Device
-            </span>
+            <div className="flex gap-2 items-center">
+              <User_online width={16} height={16} />
+              <span className="text-sm font-medium text-emerald-600">
+                Current Device
+              </span>
+            </div>
+
           </div>
         </section>
 
