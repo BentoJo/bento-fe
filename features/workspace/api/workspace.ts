@@ -2,10 +2,12 @@ import { getClientAxios } from "@/shared/lib/api/client";
 import { getErrorMessage } from "@/shared/types/api/errors";
 import type { ApiEnvelope } from "@/shared/types/api/response";
 import type {
+  AcceptInviteRequest,
   CreateWorkspaceRequest,
   GetWorkspaceOverviewResponse,
   ListUserWorkspacesRequest,
   ListUserWorkspacesResponse,
+  RejectInviteRequest,
   TransferWorkspaceOwnershipRequest,
   UpdateWorkspaceRequest,
   WorkspaceResponse,
@@ -19,6 +21,22 @@ const BASE = "/v1/workspace";
 
 function fail(error: unknown, fallback: string): never {
   throw new Error(getErrorMessage(error) || fallback);
+}
+
+export async function acceptInvite(body: AcceptInviteRequest): Promise<void> {
+  try {
+    await getClientAxios().post(`${BASE}/invites/accept`, body);
+  } catch (error) {
+    fail(error, "Failed to accept invitation.");
+  }
+}
+
+export async function rejectInvite(body: RejectInviteRequest): Promise<void> {
+  try {
+    await getClientAxios().post(`${BASE}/reject`, body);
+  } catch (error) {
+    fail(error, "Failed to reject invitation.");
+  }
 }
 
 export async function createWorkspace(
