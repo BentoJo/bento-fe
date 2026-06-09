@@ -5,11 +5,13 @@ import { Controller, useForm } from "react-hook-form";
 import { ClipboardList, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { createCard } from "@/features/boards/api/cards";
+import { createCard, updateCard } from "@/features/boards/api/cards";
 import type {
+  Card,
   CardPriority,
   Column,
   CreateCardRequest,
+  UpdateCardRequest,
 } from "@/features/boards/types/board";
 import {
   taskSchema,
@@ -39,12 +41,16 @@ import LabelIcon from "@/shared/components/svgs/Label";
 interface CreateTaskDrawerProps {
   workspaceId: string;
   boardId: string;
-  /** The column the task is created in (its name preselects Status). */
   column: Column | null;
   columns: Column[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+
+  mode?: "create" | "edit";
+  cardToEdit?: Card | null;
+
   onCreated?: () => void;
+  onUpdated?: () => void;
 }
 
 const RECURRING_OPTIONS = ["None", "Daily", "Weekly", "Monthly"];
@@ -70,7 +76,6 @@ function emptyValues(statusId?: string): TaskFormValues {
     descriptionText: "",
     status: statusId ?? "",
     isPrivate: false,
-    visibility: "public",
     priority: "medium",
     recurring: "None",
     startDate: "",
@@ -85,7 +90,10 @@ export function CreateTaskDrawer({
   columns,
   open,
   onOpenChange,
+  mode = "create",
+  cardToEdit = null,
   onCreated,
+  onUpdated,
 }: CreateTaskDrawerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -93,9 +101,25 @@ export function CreateTaskDrawer({
     defaultValues: emptyValues(),
   });
 
+  // Populate form when opening in either mode
   useEffect(() => {
-    if (open) reset(emptyValues(column?.id));
-  }, [open, column, reset]);
+    if (!open) return;
+
+    if (mode === "edit" && cardToEdit) {
+      reset({
+        title: cardToEdit.title ?? "",
+        descriptionText: cardToEdit.description ?? "",
+        status: cardToEdit.columnId ?? "",
+        isPrivate: cardToEdit.isPrivate ?? false,
+        priority: cardToEdit.priority ?? "medium",
+        recurring: "None",
+        startDate: cardToEdit.startDate ?? "",
+        dueDate: cardToEdit.dueDate ?? "",
+      });
+    } else {
+      reset(emptyValues(column?.id));
+    }
+  }, [open, mode, cardToEdit, column, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     const parsed = taskSchema.safeParse(values);
@@ -105,7 +129,7 @@ export function CreateTaskDrawer({
         if (
           path === "title" ||
           path === "description" ||
-          path === "visibility"
+          path === "isPrivate"
         ) {
           setError(path as keyof TaskFormValues, {
             type: "manual",
@@ -122,66 +146,82 @@ export function CreateTaskDrawer({
       return;
     }
 
-    const body: CreateCardRequest = {
-      columnId,
-      title: parsed.data.title,
-      ...(parsed.data.descriptionText?.trim()
-        ? { description: parsed.data.descriptionText.trim() }
-        : {}),
-      isPrivate: parsed.data.isPrivate,
-      visibility: parsed.data.visibility,
-      priority: parsed.data.priority,
-      ...(parsed.data.startDate ? { startDate: parsed.data.startDate } : {}),
-      ...(parsed.data.dueDate ? { dueDate: parsed.data.dueDate } : {}),
-    };
-
     setIsSubmitting(true);
+
     try {
-      await createCard(workspaceId, boardId, body);
-      toast.success(`Task "${parsed.data.title}" created.`);
+      if (mode === "edit" && cardToEdit) {
+        const body: UpdateCardRequest = {
+          columnId,
+          title: parsed.data.title,
+          descriptionText: parsed.data.descriptionText?.trim() || undefined,
+          isPrivate: parsed.data.isPrivate,
+          priority: parsed.data.priority,
+          startDate: parsed.data.startDate || undefined,
+          dueDate: parsed.data.dueDate || undefined,
+        };
+
+        await updateCard(workspaceId, boardId, cardToEdit.id, body);
+        toast.success(`Task "${parsed.data.title}" updated.`);
+        onUpdated?.();
+      } else {
+        const body: CreateCardRequest = {
+          columnId,
+          title: parsed.data.title,
+          ...(parsed.data.descriptionText?.trim()
+            ? { description: parsed.data.descriptionText.trim() }
+            : {}),
+          isPrivate: parsed.data.isPrivate,
+          priority: parsed.data.priority,
+          ...(parsed.data.startDate ? { startDate: parsed.data.startDate } : {}),
+          ...(parsed.data.dueDate ? { dueDate: parsed.data.dueDate } : {}),
+        };
+
+        await createCard(workspaceId, boardId, body);
+        toast.success(`Task "${parsed.data.title}" created.`);
+        onCreated?.();
+      }
+
       reset(emptyValues());
       onOpenChange(false);
-      onCreated?.();
     } catch (err) {
-      // TODO(BE): gateway card create not implemented yet.
-      toast.error(getErrorMessage(err) || "Failed to create task.");
+      toast.error(
+        getErrorMessage(err) ||
+          (mode === "edit" ? "Failed to update task." : "Failed to create task."),
+      );
     } finally {
       setIsSubmitting(false);
     }
   });
 
+  const isEditing = mode === "edit";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="
-    fixed
-    bottom-3
-    right-3
-    left-auto
-    top-auto
-
-    translate-x-0
-    translate-y-0
-
-    w-full
-    max-w-md
-    max-h-[calc(100vh-10rem)]
-
-    overflow-y-auto
-
-    flex flex-col
-
-    rounded-2xl
-    p-0
-    gap-0
-    data-[state=open]:slide-in-from-bottom-2
-    data-[state=closed]:slide-out-to-bottom-2
-  "
+          fixed
+          bottom-3
+          right-3
+          left-auto
+          top-auto
+          translate-x-0
+          translate-y-0
+          w-full
+          max-w-md
+          max-h-[calc(100vh-10rem)]
+          overflow-y-auto
+          flex flex-col
+          rounded-2xl
+          p-0
+          gap-0
+          data-[state=open]:slide-in-from-bottom-2
+          data-[state=closed]:slide-out-to-bottom-2
+        "
       >
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <ClipboardList className="size-8 bg-primary/10 p-2 rounded-sm text-primary" />
-            Create New Task
+            {isEditing ? "Edit Task" : "Create New Task"}
           </DialogTitle>
         </DialogHeader>
 
@@ -293,31 +333,42 @@ export function CreateTaskDrawer({
           <Controller
             name="isPrivate"
             control={control}
-            render={({ field }) => (
-              <Field>
-                <FieldLabel>Visibility</FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: false, label: "public" },
-                    { value: true, label: "private" },
-                  ].map((v) => (
-                    <button
-                      key={String(v.value)}
-                      type="button"
-                      onClick={() => field.onChange(v.value)}
-                      className={cn(
-                        "rounded-lg border px-3 py-2 text-sm font-medium capitalize transition-colors",
-                        field.value === v.value
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
-              </Field>
-            )}
+            render={({ field }) => {
+              const options = [
+                { value: false, label: "Public" },
+                { value: true, label: "Private" },
+              ] as const;
+
+              return (
+                <Field>
+                  <FieldLabel>Visibility</FieldLabel>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {options.map((opt) => {
+                      const isActive = field.value === opt.value;
+
+                      return (
+                        <button
+                          key={String(opt.value)}
+                          type="button"
+                          onClick={() => field.onChange(opt.value)}
+                          className={cn(
+                            "rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-colors",
+                            isActive
+                              ? opt.value
+                                ? "border-destructive bg-destructive/10 text-destructive"
+                                : "border-success bg-success/10 text-success"
+                              : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+              );
+            }}
           />
 
           <Controller
@@ -398,8 +449,10 @@ export function CreateTaskDrawer({
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Creating...
+                  {isEditing ? "Saving..." : "Creating..."}
                 </>
+              ) : isEditing ? (
+                "Save Changes"
               ) : (
                 "Create Task"
               )}

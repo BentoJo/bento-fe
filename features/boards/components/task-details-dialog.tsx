@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   CalendarDays,
   CheckSquare,
+  Edit,
   Flag,
   Paperclip,
   Send,
@@ -23,10 +24,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/shared/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { cn } from "@/shared/lib/utils";
 
 interface TaskDetailsDialogProps {
@@ -76,15 +74,36 @@ export function TaskDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85dvh] gap-0 overflow-y-auto p-0 sm:max-w-3xl">
-        <DialogHeader className="flex flex-row items-center gap-2 border-b border-border p-5">
-          {card.status ? (
-            <Badge variant="secondary" className="font-normal">
-              {card.status}
-            </Badge>
-          ) : null}
-          <DialogTitle className="text-lg font-semibold text-foreground">
-            {card.title}
-          </DialogTitle>
+        <DialogHeader
+          actions={
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("open-edit-task", { detail: card }),
+                  );
+                }}
+                className="border-0 cursor-pointer"
+              >
+                <Edit className="text-[#64748B]" />
+              </Button>
+            </div>
+          }
+          className="flex flex-row items-center justify-between gap-2 border-b border-border p-5"
+        >
+          <div className="flex items-center gap-2">
+            {card.status ? (
+              <Badge variant="secondary" className="font-normal">
+                {card.status}
+              </Badge>
+            ) : null}
+
+            <DialogTitle className="text-lg font-semibold text-foreground border px-3 rounded-md">
+              {card.title}
+            </DialogTitle>
+          </div>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_280px]">

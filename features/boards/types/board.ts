@@ -216,6 +216,7 @@ export interface CreateCardRequest {
 }
 
 export interface UpdateCardRequest {
+  columnId: string;
   title?: string;
   descriptionText?: string;
   startDate?: string;
