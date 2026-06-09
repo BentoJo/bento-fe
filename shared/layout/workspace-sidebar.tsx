@@ -86,7 +86,7 @@ export function WorkspaceSidebar({ workspaceId }: WorkspaceSidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!collapsed}
           onClick={() => setCollapsed((current) => !current)}
-          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-white/5"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-white/5 cursor-pointer"
         >
           <span
             className={cn(
@@ -193,10 +193,9 @@ function SectionLabel({
     <div
       className={cn(
         "mb-2 flex items-center gap-2 px-1 transition-all duration-200",
-        collapsed ? "h-px opacity-0" : "opacity-100",
       )}
     >
-      <span className="whitespace-nowrap text-xs font-medium text-[#94A3B8]">
+      <span className={`whitespace-nowrap text-xs font-medium text-[#94A3B8] ${collapsed ? "hidden" : ""}`}>
         {label}
       </span>
       <div className="h-px flex-1 bg-[#1E293B]" />

@@ -21,9 +21,9 @@ interface TaskCardProps {
 }
 
 const PRIORITY_STYLES: Record<CardPriority, string> = {
-  low: "bg-success/10 text-success",
-  medium: "bg-warning/10 text-warning",
-  high: "bg-destructive/10 text-destructive",
+  low: "bg-success/10 border border-[#89D3A0] text-[#008447] font-semibold",
+  medium: "bg-warning/10 border border-[#FFD78D] text-[#F54900] font-semibold",
+  high: "bg-destructive/10 border border-[#FF8B7C] text-[#B30909] font-semibold",
 };
 
 const PRIORITY_LABEL: Record<CardPriority, string> = {
@@ -77,7 +77,7 @@ export function TaskCard({
           onClick?.();
         }
       }}
-      className="flex cursor-pointer flex-col gap-2.5 rounded-xl border border-border bg-card p-3 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="flex cursor-pointer flex-col gap-2.5 rounded-[8px] border border-border p-3 text-left transition-shadow focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       {/* Top row: priority pill + due date */}
       <div className="flex items-center justify-between gap-2">
@@ -104,8 +104,8 @@ export function TaskCard({
 
       {/* Title + description */}
       <div className="flex flex-col gap-0.5">
-        <p className="text-sm font-semibold text-card-foreground">
-          {card.title}
+        <p className="text-base font-bold text-card-foreground">
+          {card.title} 
         </p>
         {card.description ? (
           <p className="line-clamp-2 text-xs text-muted-foreground">
