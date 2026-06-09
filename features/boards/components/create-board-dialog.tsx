@@ -81,7 +81,7 @@ export function CreateBoardDialog({
     const icon = parsed.data.icon?.trim();
     const body: CreateBoardRequest = {
       name: parsed.data.name,
-      visibility: parsed.data.isPrivate ? "private" : "public",
+      isPrivate: parsed.data.isPrivate,
       ...(icon ? { icon } : {}),
     };
 

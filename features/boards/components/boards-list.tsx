@@ -307,12 +307,12 @@ function BoardCard({
             variant="secondary"
             className="gap-1 font-normal text-muted-foreground cursor-default"
           >
-            {board.visibility === "private" ? (
+            {board.isPrivate === true ? (
               <Lock className="size-3" />
             ) : (
               <Globe className="size-3" />
             )}
-            {board.visibility === "private" ? "Private" : "Public"}
+            {board.isPrivate === true ? "Private" : "Public"}
           </Badge>
 
           {typeof board.membersCount === "number" ? (
