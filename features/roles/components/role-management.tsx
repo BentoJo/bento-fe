@@ -5,12 +5,9 @@ import {
   Eye,
   MoreHorizontal,
   Pencil,
-  Plus,
   Shield,
   ShieldCheck,
-  Tag,
   Trash2,
-  Users,
 } from "lucide-react";
 
 import { cn } from "@/shared/lib/utils";
@@ -26,7 +23,6 @@ import {
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
@@ -92,7 +88,8 @@ function RoleRow({
         </div>
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-foreground">
-            {role.roleName}
+            {role.roleName.slice(0, 1).toUpperCase() +
+              role.roleName.slice(1).toLocaleLowerCase()}
           </h3>
           {description ? (
             <p className="truncate text-xs text-muted-foreground">
@@ -115,7 +112,7 @@ function RoleRow({
 
       {/* Users number — no count endpoint available */}
       <div className="space-y-1">
-        <p className="flex items-center gap-1.5 text-[14px] font-semibold atext-foreground">
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-foreground">
           <UsersIcon className="size-3.5 text-muted-foreground" aria-hidden />
           Users Number
         </p>
@@ -188,7 +185,6 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
     <section className="rounded-[12px] border border-[#E2E8F0] bg-white p-6 shadow-none">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-
         <div className="flex items-center gap-3">
           <div className="flex flex-col gap-1  ">
             <div className="flex items-center gap-2">
@@ -219,8 +215,9 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
                           px-4
                         text-white
                         hover:bg-[#1D4ED8]
-                        ">
-                  <PlusIcon className="size-4"  width={24} height={24}/>
+                        "
+                >
+                  <PlusIcon className="size-4" width={24} height={24} />
                   Create new Role
                 </Button>
               </span>
@@ -233,7 +230,7 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
       <div className="mt-6 space-y-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[88px] w-full rounded-xl" />
+            <Skeleton key={i} className="h-22 w-full rounded-xl" />
           ))
         ) : error ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border py-12 text-center">
