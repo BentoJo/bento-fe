@@ -1,5 +1,14 @@
 import { cairo } from "@/shared/lib/fonts";
+import { cn } from "@/shared/lib/utils";
 import { useState } from "react";
+
+
+interface ToggleItem {
+  id: string;
+  label: string;
+  description: string;
+  defaultOn?: boolean;
+}
 
 function ToggleRow({ item }: { item: ToggleItem }) {
   const [enabled, setEnabled] = useState(item.defaultOn ?? false);
