@@ -2,8 +2,12 @@
  * Workspace roles & permissions contracts.
  *
  * Mirrors the gateway endpoints (global prefix /api/v1, base /workspace):
+ *   POST   /{workspaceId}/roles
  *   GET    /{workspaceId}/roles
+ *   PUT    /{workspaceId}/roles/{authzRoleId}
  *   GET    /{workspaceId}/roles/{authzRoleId}/permissions
+ *   POST   /{workspaceId}/roles/{authzRoleId}/permissions
+ *   DELETE /{workspaceId}/roles/{authzRoleId}/permissions
  *   DELETE /{workspaceId}/roles/{authzRoleId}
  *
  * Notes honored from the contract:
@@ -17,6 +21,49 @@ export interface WorkspaceRole {
   roleName: string;
   /** System (built-in) roles cannot be deleted. */
   isSystemRole: boolean;
+}
+
+/** Request of POST /{workspaceId}/roles */
+export interface CreateRoleRequest {
+  name: string;
+  scopeType: 'workspace';
+}
+
+/** Response of POST /{workspaceId}/roles */
+export interface CreateRoleResponse {
+  roleId: string;
+}
+
+/** Request of PUT /{workspaceId}/roles/{authzRoleId} */
+export interface UpdateRoleRequest {
+  name?: string;
+  isEditable?: boolean;
+  isDeletable?: boolean;
+}
+
+/** Response of PUT /{workspaceId}/roles/{authzRoleId} */
+export interface UpdateRoleResponse {
+  success: boolean;
+}
+
+/** Request of POST /{workspaceId}/roles/{authzRoleId}/permissions */
+export interface AssignPermissionsRequest {
+  permissionIds: string[];
+}
+
+/** Response of POST /{workspaceId}/roles/{authzRoleId}/permissions */
+export interface AssignPermissionsResponse {
+  success: boolean;
+}
+
+/** Request of DELETE /{workspaceId}/roles/{authzRoleId}/permissions */
+export interface RemovePermissionsRequest {
+  permissionIds: string[];
+}
+
+/** Response of DELETE /{workspaceId}/roles/{authzRoleId}/permissions */
+export interface RemovePermissionsResponse {
+  success: boolean;
 }
 
 /** Response of GET /{workspaceId}/roles. */
