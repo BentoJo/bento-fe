@@ -34,6 +34,9 @@ import { deleteRole } from "@/features/roles/api/roles";
 import { useRoles } from "@/features/roles/hooks/use-roles";
 import type { WorkspaceRole } from "@/features/roles/types/role";
 import { RolePermissionsDialog } from "@/features/roles/components/role-permissions-dialog";
+import Label from "@/shared/components/svgs/Label";
+import PlusIcon from "@/shared/components/svgs/PlusIcon";
+import UsersIcon from "@/shared/components/svgs/UsersIcon";
 
 /** Built-in role descriptions (no description field on the contract). */
 const ROLE_DESCRIPTIONS: Record<string, string> = {
@@ -101,7 +104,7 @@ function RoleRow({
 
       {/* Created By / role type */}
       <div className="space-y-1">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-foreground">
           <Shield className="size-3.5 text-muted-foreground" aria-hidden />
           Role Type
         </p>
@@ -112,8 +115,8 @@ function RoleRow({
 
       {/* Users number — no count endpoint available */}
       <div className="space-y-1">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-          <Users className="size-3.5 text-muted-foreground" aria-hidden />
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold atext-foreground">
+          <UsersIcon className="size-3.5 text-muted-foreground" aria-hidden />
           Users Number
         </p>
         {/* TODO(BE): no "assigned to N users" count endpoint. */}
@@ -182,16 +185,21 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
   );
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-6 shadow-xs">
+    <section className="rounded-[12px] border border-[#E2E8F0] bg-white p-6 shadow-none">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Tag className="mt-0.5 size-6 text-foreground" aria-hidden />
-          <div>
-            <h2 className="text-lg font-bold text-foreground">
-              Role Management
-            </h2>
-            <p className="text-sm text-muted-foreground">
+
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-1  ">
+            <div className="flex items-center gap-2">
+              <Label className="h-5 w-5 text-[#334155]" />
+              <div>
+                <h2 className="text-[24px] font-bold text-[#0F172A]">
+                  Role Management
+                </h2>
+              </div>
+            </div>
+            <p className="text-[14px] pl-8 text-[#64748B]">
               Manage workspace roles and control access permissions.
             </p>
           </div>
@@ -203,13 +211,20 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
           <Tooltip>
             <TooltipTrigger asChild>
               <span tabIndex={0}>
-                <Button disabled aria-disabled className="pointer-events-none">
-                  <Plus className="size-4" aria-hidden />
+                <Button
+                  className="
+                          h-10
+                          rounded-[8px]
+                          bg-[#2563EB]
+                          px-4
+                        text-white
+                        hover:bg-[#1D4ED8]
+                        ">
+                  <PlusIcon className="size-4"  width={24} height={24}/>
                   Create new Role
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>Coming soon</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
