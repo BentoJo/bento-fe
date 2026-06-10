@@ -55,7 +55,7 @@ export function TaskCard({
   draggable,
 }: TaskCardProps) {
   const priority = card.priority;
-  const due = formatDate(card.dueDate);
+  const due = formatDate(card.dueDate?.toString());
   const progress =
     typeof card.progress === "number"
       ? Math.max(0, Math.min(100, card.progress))

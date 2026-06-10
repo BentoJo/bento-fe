@@ -46,15 +46,11 @@ function DialogOverlay({
     />
   )
 }
-
 function DialogContent({
   className,
   children,
-  showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-}) {
+}: React.ComponentProps<typeof DialogPrimitive.Content>) {
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -67,31 +63,37 @@ function DialogContent({
         {...props}
       >
         {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close data-slot="dialog-close" asChild>
-            <Button
-              variant="ghost"
-              className="absolute top-4 right-4"
-              size="icon-sm"
-            >
-              <XIcon
-              />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogPrimitive.Close>
-        )}
       </DialogPrimitive.Content>
     </DialogPortal>
   )
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function DialogHeader({
+  className,
+  children,
+  actions,
+  ...props
+}: React.ComponentProps<"div"> & {
+  actions?: React.ReactNode;
+}) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex items-center justify-between gap-3", className)}
       {...props}
-    />
+    >
+      <div className="flex flex-col gap-2">{children}</div>
+
+      <div className="flex items-center gap-0">
+        {actions}
+        <DialogClose asChild>
+          <Button variant="ghost" size="icon-sm" className="cursor-pointer">
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </Button>
+        </DialogClose>
+      </div>
+    </div>
   )
 }
 

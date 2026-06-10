@@ -20,13 +20,62 @@ export type Visibility = "public" | "private";
 /** A label/tag attached to a card. */
 export interface CardLabel {
   id: string;
+  workspaceId: string;
   name: string;
-  color?: string;
+  icon?: string | null;
+  type: string;
+  createdBy: string;
+  createdAt: string;
+  color?: string; // Legacy UI field
 }
 
-/** A card assignee. The backend currently exposes only a userId. */
+/** A card assignee. */
 export interface CardAssignee {
-  userId: string;
+  id: string;
+  cardId: string;
+  assigneeType: string;
+  boardMemberId?: string | null;
+  teamId?: string | null;
+  assignedBy: string;
+  createdAt: string;
+  userId: string; // Legacy UI field
+}
+
+/** A comment on a card. */
+export interface CardComment {
+  id: string;
+  workspaceId: string;
+  cardId: string;
+  parentCommentId?: string | null;
+  workspaceMemberId: string;
+  contentText?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+/** A checklist item. */
+export interface ChecklistItem {
+  id: string;
+  workspaceId: string;
+  checklistId: string;
+  title: string;
+  isCompleted: boolean;
+  position: number;
+  completedBy?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+}
+
+/** A checklist on a card. */
+export interface CardChecklist {
+  id: string;
+  workspaceId: string;
+  cardId: string;
+  title: string;
+  position: number;
+  createdBy: string;
+  createdAt: string;
+  items: ChecklistItem[];
 }
 
 /** A board as returned by the boards list / get endpoints. */
@@ -34,13 +83,14 @@ export interface Board {
   id: string;
   workspaceId: string;
   name: string;
-  visibility: Visibility;
-  icon?: string;
+  isPrivate: boolean;
+  visibility?: Visibility; // Legacy UI field
+  icon?: string | null;
   isArchived: boolean;
   isFavorite?: boolean;
   membersCount?: number;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt?: string | null;
 }
 
 /** A column within a board. */
@@ -51,30 +101,42 @@ export interface Column {
   name: string;
   position: number;
   isArchived: boolean;
+  cardsCount?: number;
   createdAt: string;
+  updatedAt?: string | null;
 }
 
 /** A card (task) within a column. */
 export interface Card {
   id: string;
-  columnId: string;
+  workspaceId: string;
   boardId: string;
+  columnId: string;
   title: string;
-  description?: string;
-  priority?: CardPriority;
-  status?: string;
-  visibility?: Visibility;
+  descriptionText?: string | null;
+  description?: string; // Legacy UI field
+  priority: CardPriority;
+  isCompleted: boolean;
+  progress: any; // Backend is string, UI expects number
+  isPrivate: boolean;
+  visibility?: Visibility; // Legacy UI field
+  position: number;
+  createdBy: string;
+  isArchived: boolean;
   startDate?: string;
   dueDate?: string;
-  progress?: number;
+  createdAt: string;
+  updatedAt?: string | null;
+  commentsCount?: number; // Legacy UI field
+  attachmentsCount?: number; // Legacy UI field
+  checklistDone?: number; // Legacy UI field
+  checklistTotal?: number; // Legacy UI field
+  status?: string; // Legacy UI field
+  // UI helper fields (may be populated by separate calls)
   labels?: CardLabel[];
   assignees?: CardAssignee[];
-  commentsCount?: number;
-  attachmentsCount?: number;
-  checklistDone?: number;
-  checklistTotal?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  comments?: CardComment[];
+  checklists?: CardChecklist[];
 }
 
 /* ----------------------------- Boards requests ---------------------------- */
@@ -93,14 +155,24 @@ export interface ListBoardsResponse {
 
 export interface CreateBoardRequest {
   name: string;
-  visibility?: Visibility;
+  isPrivate?: boolean;
   icon?: string;
 }
 
 export interface UpdateBoardRequest {
   name?: string;
-  visibility?: Visibility;
-  icon?: string;
+  isPrivate?: boolean;
+  icon?: string | null;
+}
+
+export interface ListFavoriteBoardsResponse {
+  boards: {
+    boardId: string;
+    name: string;
+    icon?: string | null;
+    isPrivate: boolean;
+  }[];
+  pagination: PaginationMeta;
 }
 
 /* ----------------------------- Columns requests --------------------------- */
@@ -116,11 +188,10 @@ export interface CreateColumnRequest {
 
 export interface UpdateColumnRequest {
   name?: string;
-  position?: number;
 }
 
 export interface ReorderColumnRequest {
-  position: number;
+  newPosition: number;
 }
 
 export interface BulkReorderColumnsRequest {
@@ -136,27 +207,57 @@ export interface ListCardsResponse {
 export interface CreateCardRequest {
   columnId: string;
   title: string;
-  description?: string;
-  priority?: CardPriority;
-  status?: string;
-  visibility?: Visibility;
+  descriptionText?: string;
   startDate?: string;
   dueDate?: string;
+  priority?: string;
+  isPrivate?: boolean;
+  position?: number;
 }
 
 export interface UpdateCardRequest {
-  columnId?: string;
+  columnId: string;
   title?: string;
-  description?: string;
-  priority?: CardPriority;
-  status?: string;
-  visibility?: Visibility;
+  descriptionText?: string;
   startDate?: string;
   dueDate?: string;
-  progress?: number;
+  priority?: string;
+  isCompleted?: boolean;
+  progress?: string;
+  isPrivate?: boolean;
 }
 
 export interface MoveCardRequest {
   columnId: string;
   position: number;
+}
+
+export interface ListCardCommentsResponse {
+  comments: CardComment[];
+  pagination: PaginationMeta;
+}
+
+export interface CreateLabelRequest {
+  name: string;
+  icon?: string;
+  type?: string;
+}
+
+export interface ListLabelsResponse {
+  labels: CardLabel[];
+}
+
+export interface AddCommentRequest {
+  contentText: string;
+  parentCommentId?: string;
+}
+
+export interface CreateChecklistRequest {
+  title: string;
+  position?: number;
+}
+
+export interface AddChecklistItemRequest {
+  title: string;
+  position?: number;
 }

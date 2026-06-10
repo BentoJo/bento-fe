@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -17,7 +17,7 @@ import { useBoard } from "@/features/boards/hooks/use-board";
 import { useCardActions } from "@/features/boards/hooks/use-card";
 import { useColumnActions } from "@/features/boards/hooks/use-column";
 import type { Card, Column } from "@/features/boards/types/board";
-import { CreateTaskDrawer } from "@/features/boards/components/create-task-drawer";
+import { TaskDrawer } from "@/features/boards/components/task-drawer";
 import { TaskDetailsDialog } from "@/features/boards/components/task-details-dialog";
 import { ColumnsList } from "@/features/boards/components/columns-list";
 import { ManageColumnsDialog } from "@/features/boards/components/manage-columns-dialog";
@@ -41,12 +41,34 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
   const [manageColumnsOpen, setManageColumnsOpen] = useState(false);
+  const [taskDrawer, setTaskDrawer] = useState<{
+    open: boolean;
+    mode: "create" | "edit";
+    card: Card | null;
+  }>({ open: false, mode: "create", card: null });
 
-  const { moveCard: moveCardAction } = useCardActions(workspaceId, boardId, refetch);
+  useEffect(() => {
+    const handler = (e: CustomEvent<Card>) => {
+      setTaskDrawer({ open: true, mode: "edit", card: e.detail });
+    };
+    window.addEventListener("open-edit-task", handler as EventListener);
+    return () =>
+      window.removeEventListener("open-edit-task", handler as EventListener);
+  }, []);
+
+  const openCreateDrawer = (column: Column) => {
+    setCreateForColumn(column);
+    setTaskDrawer({ open: true, mode: "create", card: null });
+  };
+
+  const { moveCard: moveCardAction } = useCardActions(
+    workspaceId,
+    boardId,
+    refetch,
+  );
 
   const boardName = board?.name ?? "Board";
 
-  // Native HTML5 DnD: move a card to a new column.
   const handleDrop = async (targetColumn: Column) => {
     const cardId = draggingCardId;
     setDraggingCardId(null);
@@ -92,22 +114,34 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
                 {boardName}
               </h1>
               <p className="text-xs text-muted-foreground">
-                {board?.visibility === "private" ? "Private board" : "Public board"}
+                {board?.isPrivate === true ? "Private board" : "Public board"}
               </p>
             </div>
           </div>
 
           {/* Header actions */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer"
+            >
               <Eye className="size-4" />
               View All Sprints
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer"
+            >
               <Filter className="size-4" />
               Filter
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer"
+            >
               <ListFilter className="size-4" />
               Sort
             </Button>
@@ -148,7 +182,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
           cardsByColumn={cardsByColumn}
           refetch={refetch}
           onCardClick={(card) => setDetailsCard(card)}
-          onAddTaskClick={(col) => setCreateForColumn(col)}
+          onAddTaskClick={openCreateDrawer}
           onDragStartCard={(cardId) => setDraggingCardId(cardId)}
           onDragEndCard={() => setDraggingCardId(null)}
           dragOverColumnId={dragOverColumnId}
@@ -157,15 +191,23 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
         />
       )}
 
-      {/* Create Task drawer */}
-      <CreateTaskDrawer
+      {/* Create / Edit Task drawer */}
+      <TaskDrawer
+        mode={taskDrawer.mode}
+        cardToEdit={taskDrawer.card}
         workspaceId={workspaceId}
         boardId={boardId}
         column={createForColumn}
         columns={columns}
-        open={Boolean(createForColumn)}
-        onOpenChange={(open) => !open && setCreateForColumn(null)}
+        open={taskDrawer.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTaskDrawer({ open: false, mode: "create", card: null });
+            setCreateForColumn(null);
+          }
+        }}
         onCreated={refetch}
+        onUpdated={refetch}
       />
 
       {/* Task details */}
@@ -229,7 +271,11 @@ function EmptyBoard({
 }) {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
-  const { createColumn, isSubmitting } = useColumnActions(workspaceId, boardId, refetch);
+  const { createColumn, isSubmitting } = useColumnActions(
+    workspaceId,
+    boardId,
+    refetch,
+  );
 
   const handleCreate = async () => {
     if (!name.trim()) return;
@@ -247,7 +293,8 @@ function EmptyBoard({
       </div>
       <p className="text-base font-medium text-foreground">No columns yet</p>
       <p className="max-w-sm text-sm text-muted-foreground mb-2">
-        Get started by creating a column (e.g., &quot;To Do&quot;, &quot;In Progress&quot;, &quot;Completed&quot;).
+        Get started by creating a column (e.g., &quot;To Do&quot;, &quot;In
+        Progress&quot;, &quot;Completed&quot;).
       </p>
       {isCreating ? (
         <div className="flex items-center gap-2 max-w-xs">
@@ -266,7 +313,12 @@ function EmptyBoard({
           <Button size="sm" onClick={handleCreate} disabled={isSubmitting}>
             {isSubmitting ? "Adding..." : "Add"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setIsCreating(false)} disabled={isSubmitting}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsCreating(false)}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
         </div>

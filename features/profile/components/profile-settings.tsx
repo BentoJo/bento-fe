@@ -44,7 +44,6 @@ function initials(user: ProfileUser): string {
 }
 
 export function ProfileSettings({ user }: { user: ProfileUser }) {
-  // Pre-fill from session where available; the rest start empty (no BE source).
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
@@ -55,7 +54,6 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
 
   const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
 
-  // Profile-completion meter: fraction of the 7 editable fields filled.
   const completion = useMemo(() => {
     const fields = [firstName, lastName, email, birthDate, gender, phone, bio];
     const filled = fields.filter((v) => v.trim().length > 0).length;
@@ -245,7 +243,10 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
             <Link href="/profile">Cancel</Link>
           </Button>
           {/* TODO(BE): no user profile update endpoint on gateway. */}
-          <Button disabled title={COMING_SOON}>
+          <Button 
+          onClick={() => {
+            
+          }}>
             Save Changes
           </Button>
         </div>

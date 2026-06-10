@@ -100,3 +100,11 @@ export interface GetWorkspaceOverviewResponse {
   permissions: WorkspacePermissions;
   lastUpdatedAt: string;
 }
+
+export interface AcceptInviteRequest {
+  token: string;
+}
+
+export interface RejectInviteRequest {
+  token: string;
+}

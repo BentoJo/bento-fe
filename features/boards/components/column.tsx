@@ -97,8 +97,7 @@ export default function Column({
         <></>
       )}
 
-      {/* Bottom Add Task Button */}
-      <div className="p-3">
+      <div className={`${cards.length > 0 ? "px-3 pb-3" : "p-3"}`}>
         <Button
           variant="ghost"
           className="mt-1 cursor-pointer bg-blue-100! text-[#2563EB]! font-bold w-full justify-center gap-2 hover:bg-[#2563EB] border-border text-sm"

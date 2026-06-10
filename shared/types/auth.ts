@@ -1,9 +1,4 @@
 // Register Types
-interface APIResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
 
 export interface RegisterRequest {
   email: string;
@@ -41,6 +36,32 @@ export interface UserInfo {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
+}
+
+export interface UpdateUserRequest {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  phone?: string;
+  dob?: string;
+  gender?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  phone: string | null;
+  dob: string | null;
+  gender: string | null;
+  Role: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SessionInfo {

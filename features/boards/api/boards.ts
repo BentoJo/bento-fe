@@ -7,16 +7,13 @@ import type {
   ListBoardsRequest,
   ListBoardsResponse,
   UpdateBoardRequest,
+  ListFavoriteBoardsResponse,
 } from "@/features/boards/types/board";
+import { unwrap } from "@/shared/lib/api/unwrap";
 
 /**
- * Boards API (EXPECTED gateway @Controller('workspace/:wid/boards'),
- * global prefix /api/v1). Gateway wraps gRPC payloads as
- * { success, message, data }, so we unwrap `.data.data`.
- *
- * TODO(BE): gateway board/column/card REST not implemented yet — these paths
- * are the expected contract. Functions may throw; callers (hooks) catch and
- * fall back to an empty state so the page never crashes.
+ * Boards API (Gateway @Controller('workspace/:wid/boards')).
+ * All responses are unwrapped via the unwrap() helper to extract data.data.
  */
 const BASE = "/v1/workspace";
 
@@ -28,6 +25,14 @@ function fail(error: unknown, fallback: string): never {
   throw new Error(getErrorMessage(error) || fallback);
 }
 
+function mapBoard(board: Board): Board {
+  if (!board) return board;
+  return {
+    ...board,
+    visibility: board.isPrivate ? "private" : "public",
+  };
+}
+
 export async function listBoards(
   workspaceId: string,
   params: ListBoardsRequest = {},
@@ -35,11 +40,35 @@ export async function listBoards(
   try {
     const res = await getClientAxios().get<ApiEnvelope<ListBoardsResponse>>(
       boardsPath(workspaceId),
-      { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 20 } },
+      {
+        params: {
+          ...params,
+          page: params.page ?? 1,
+          limit: params.limit ?? 20,
+        },
+      },
     );
-    return res.data.data;
+    const data = unwrap<ListBoardsResponse>(res);
+    return {
+      ...data,
+      boards: data.boards.map(mapBoard),
+    };
   } catch (error) {
     fail(error, "Failed to load boards.");
+  }
+}
+
+export async function listFavoriteBoards(
+  workspaceId: string,
+  params: { page?: number; limit?: number } = {},
+): Promise<ListFavoriteBoardsResponse> {
+  try {
+    const res = await getClientAxios().get<
+      ApiEnvelope<ListFavoriteBoardsResponse>
+    >(`${boardsPath(workspaceId)}/favorites`, { params });
+    return unwrap<ListFavoriteBoardsResponse>(res);
+  } catch (error) {
+    fail(error, "Failed to load favorite boards.");
   }
 }
 
@@ -52,7 +81,7 @@ export async function createBoard(
       boardsPath(workspaceId),
       body,
     );
-    return res.data.data;
+    return mapBoard(unwrap<Board>(res));
   } catch (error) {
     fail(error, "Failed to create board.");
   }
@@ -66,7 +95,7 @@ export async function getBoard(
     const res = await getClientAxios().get<ApiEnvelope<Board>>(
       `${boardsPath(workspaceId)}/${boardId}`,
     );
-    return res.data.data;
+    return mapBoard(unwrap<Board>(res));
   } catch (error) {
     fail(error, "Failed to load board.");
   }
@@ -82,7 +111,7 @@ export async function updateBoard(
       `${boardsPath(workspaceId)}/${boardId}`,
       body,
     );
-    return res.data.data;
+    return mapBoard(unwrap<Board>(res));
   } catch (error) {
     fail(error, "Failed to update board.");
   }
