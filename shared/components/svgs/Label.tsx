@@ -1,6 +1,6 @@
 import { IconProps } from "../../types/icon-svg";
 
-const Label = ({ width, height, fill }: IconProps) => {
+const Label = ({ width, height, fill, className }: IconProps) => {
   return (
     <svg 
     width={width ||"24"}
