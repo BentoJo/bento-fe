@@ -19,7 +19,7 @@ import type {
  * Workspace roles API (gateway @Controller('workspace'), global prefix /api/v1).
  * Gateway wraps gRPC payloads as { success, message, data }, so we unwrap `.data.data`.
  */
-const BASE = "/api/v1/workspace";
+const BASE = "/v1/workspace";
 
 function fail(error: unknown, fallback: string): never {
   throw new Error(getErrorMessage(error) || fallback);
