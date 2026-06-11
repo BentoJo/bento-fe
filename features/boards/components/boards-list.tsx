@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -54,12 +54,23 @@ export function BoardsList({ workspaceId }: BoardsListProps) {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
 
-  const { boards, isLoading, error, refetch } = useBoards(workspaceId, {
+  // 300ms debounce: typing automatically updates the search query
+  useEffect(() => {
+    const id = setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  const { boards: rawBoards, isLoading, error, refetch } = useBoards(workspaceId, {
     page: 1,
     limit: PAGE_SIZE,
     search: search || undefined,
     includeArchived,
   });
+
+  // Task 1: client-side filter — when toggle is ON show only archived, OFF show only active
+  const boards = rawBoards.filter((b) =>
+    includeArchived ? b.isArchived : !b.isArchived,
+  );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +118,7 @@ export function BoardsList({ workspaceId }: BoardsListProps) {
           onClick={() => setIncludeArchived((v) => !v)}
         >
           <Archive className="size-4" />
-          {includeArchived ? "Hiding archived" : "Show archived"}
+          {includeArchived ? "Show active" : "Show archived"}
         </Button>
       </div>
 

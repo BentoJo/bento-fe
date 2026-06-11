@@ -3,7 +3,9 @@ import { getErrorMessage } from "@/shared/types/api/errors";
 import type { ApiEnvelope } from "@/shared/types/api/response";
 import type {
   GetRolePermissionsResponse,
+  GetWorkspacePermissionsResponse,
   GetWorkspaceRolesResponse,
+  WorkspacePermission,
   WorkspaceRole,
   CreateRoleRequest,
   CreateRoleResponse,
@@ -121,6 +123,30 @@ export async function getRolePermissions(
     return Array.isArray(permissions) ? permissions : [];
   } catch (error) {
     fail(error, "Failed to load role permissions.");
+  }
+}
+
+/**
+ * GET /{workspaceId}/permissions
+ *
+ * Returns all permission descriptors available in this workspace so the UI
+ * can render a full checkbox list and diff against what a role already has.
+ *
+ * Backed by the gateway's GET /v1/workspace/{workspaceId}/permissions, which
+ * proxies the authz ListPermissions RPC. Response shape:
+ * { permissions: WorkspacePermission[] }.
+ */
+export async function getPermissions(
+  workspaceId: string,
+): Promise<WorkspacePermission[]> {
+  try {
+    const res = await getClientAxios().get<
+      ApiEnvelope<GetWorkspacePermissionsResponse>
+    >(`${BASE}/${workspaceId}/permissions`);
+    const permissions = res.data.data?.permissions;
+    return Array.isArray(permissions) ? permissions : [];
+  } catch (error) {
+    fail(error, "Failed to load workspace permissions.");
   }
 }
 

@@ -67,13 +67,18 @@ export function useBoard(
       setCards([]);
     }
 
-    // Surface an error only when EVERYTHING failed (backend unwired).
-    if (
-      boardRes.status === "rejected" &&
+    // Surface board-level errors (e.g. "Not a board member") immediately.
+    // Fall back to a generic error only when EVERYTHING failed (backend unwired).
+    if (boardRes.status === "rejected") {
+      const reason = boardRes.reason;
+      setError(
+        reason instanceof Error ? reason.message : "Failed to load board.",
+      );
+    } else if (
       columnsRes.status === "rejected" &&
       cardsRes.status === "rejected"
     ) {
-      const reason = boardRes.reason;
+      const reason = columnsRes.reason;
       setError(
         reason instanceof Error ? reason.message : "Failed to load board.",
       );

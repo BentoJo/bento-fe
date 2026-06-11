@@ -8,6 +8,7 @@ import { CreateWorkspaceButton } from "@/features/workspace/components/create-wo
 import { useWorkspaces } from "@/features/workspace/hooks/use-workspaces";
 import { WorkspacesSection } from "@/features/workspace/components/workspaces-section";
 import { PendingInvitationsSection } from "@/features/workspace/components/pending-invitations-section";
+import { useFavoriteWorkspaces } from "@/features/workspace/hooks/use-favorite-workspaces";
 
 interface HomeContentProps {
   firstName?: string;
@@ -15,6 +16,7 @@ interface HomeContentProps {
 
 export function HomeContent({ firstName }: HomeContentProps) {
   const { workspaces, isLoading, error, refetch } = useWorkspaces();
+  const { isFavorite, toggleFavorite } = useFavoriteWorkspaces();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -26,6 +28,11 @@ export function HomeContent({ firstName }: HomeContentProps) {
         ws.roleId.toLowerCase().includes(q),
     );
   }, [workspaces, query]);
+
+  const favorites = useMemo(
+    () => workspaces.filter((ws) => isFavorite(ws.id)),
+    [workspaces, isFavorite],
+  );
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-8">
@@ -62,14 +69,15 @@ export function HomeContent({ firstName }: HomeContentProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* Main column */}
         <div className="flex min-w-0 flex-col gap-6">
-          {/* Favorites — no favorites flag in the API, graceful empty state. */}
+          {/* Favorites — client-side localStorage persistence. */}
           <WorkspacesSection
             title="Favorite Workspaces"
             icon={<Star className="size-4 text-muted-foreground" />}
-            workspaces={[]}
+            workspaces={favorites}
             isLoading={false}
-            emptyMessage="No favorites yet"
-            starred
+            emptyMessage="No favorites yet — click the star on any workspace to add it here."
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
           />
 
           {/* Your Workspaces — real data. */}
@@ -86,6 +94,8 @@ export function HomeContent({ firstName }: HomeContentProps) {
                   ? "No workspaces match your search."
                   : "You don't have any workspaces yet. Create one to get started."
             }
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
           />
         </div>
 

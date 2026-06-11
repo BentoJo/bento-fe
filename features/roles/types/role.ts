@@ -76,3 +76,18 @@ export interface GetWorkspaceRolesResponse {
 export interface GetRolePermissionsResponse {
   permissions: string[];
 }
+
+/**
+ * A single permission descriptor returned by GET /{workspaceId}/permissions.
+ * TODO(BE): getPermissions must be exposed by Workspace Service + gateway.
+ */
+export interface WorkspacePermission {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+/** Response of GET /{workspaceId}/permissions. */
+export interface GetWorkspacePermissionsResponse {
+  permissions: WorkspacePermission[];
+}

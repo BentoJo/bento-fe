@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AlertCircle, Sparkles, Trash2, Upload } from "lucide-react";
+import { AlertCircle, Loader2, Sparkles, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
@@ -23,8 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import { updateProfile } from "@/features/profile/api/update-profile";
 
 interface ProfileUser {
+  id?: string;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -33,8 +37,7 @@ interface ProfileUser {
 
 const BIO_MAX = 180;
 
-// Save + Delete have no gateway endpoint yet.
-// TODO(BE): needs IAM user profile update + account delete on gateway.
+// TODO(BE): account delete endpoint on gateway still pending.
 const COMING_SOON = "Coming soon — not yet available on the gateway.";
 
 function initials(user: ProfileUser): string {
@@ -44,6 +47,7 @@ function initials(user: ProfileUser): string {
 }
 
 export function ProfileSettings({ user }: { user: ProfileUser }) {
+  const router = useRouter();
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
@@ -51,8 +55,34 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
   const [gender, setGender] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+
+  const handleSave = async () => {
+    if (!user.id) {
+      toast.error("Missing user id — cannot save profile.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        userId: user.id,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        bio: bio || undefined,
+        phone: phone || undefined,
+        dob: birthDate || undefined,
+        gender: gender || undefined,
+      });
+      toast.success("Profile updated");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const completion = useMemo(() => {
     const fields = [firstName, lastName, email, birthDate, gender, phone, bio];
@@ -237,22 +267,22 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
 
         <Separator className="my-6" />
 
-        {/* Actions — disabled: no gateway endpoint. */}
+        {/* Actions */}
         <div className="flex flex-wrap items-center justify-end gap-3">
           <Button variant="outline" asChild>
             <Link href="/profile">Cancel</Link>
           </Button>
-          {/* TODO(BE): no user profile update endpoint on gateway. */}
-          <Button 
-          onClick={() => {
-            
-          }}>
-            Save Changes
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </div>
-        <p className="mt-2 text-right text-xs text-muted-foreground">
-          {COMING_SOON}
-        </p>
       </Card>
 
       {/* Danger Zone */}

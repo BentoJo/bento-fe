@@ -1,10 +1,14 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { AlertCircle, CheckCircle2, Loader2, Plus, X } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Card, Column as ColumnType } from "@/features/boards/types/board";
+import { createCard } from "@/features/boards/api/cards";
 import { TaskCard } from "@/features/boards/components/task-card";
 import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 
 interface ColumnProps {
   column: ColumnType;
@@ -18,12 +22,15 @@ interface ColumnProps {
   onDragStartCard: (cardId: string) => void;
   onDragEndCard: () => void;
   onCardClick: (card: Card) => void;
-  onAddTaskClick: (column: ColumnType) => void;
+  /** Called after a new card is created so parent can open details + refetch. */
+  onCardCreated: (card: Card) => void;
 }
 
 export default function Column({
   column,
   cards,
+  workspaceId,
+  boardId,
   isDragOver,
   onDragOver,
   onDragLeave,
@@ -31,9 +38,13 @@ export default function Column({
   onDragStartCard,
   onDragEndCard,
   onCardClick,
-  onAddTaskClick,
+  onCardCreated,
 }: ColumnProps) {
-  // Select icon based on column name
+  const [isAdding, setIsAdding] = useState(false);
+  const [title, setTitle] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const getColumnIcon = (name: string) => {
     const lower = name.toLowerCase();
     if (lower.includes("backlog")) {
@@ -43,6 +54,37 @@ export default function Column({
       return <CheckCircle2 className="size-4 text-success" />;
     }
     return null;
+  };
+
+  const openAdder = () => {
+    setTitle("");
+    setIsAdding(true);
+    // focus on next tick after render
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const cancelAdder = () => {
+    setIsAdding(false);
+    setTitle("");
+  };
+
+  const handleCreate = async () => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    setIsSubmitting(true);
+    try {
+      const card = await createCard(workspaceId, boardId, {
+        columnId: column.id,
+        title: trimmed,
+      });
+      setIsAdding(false);
+      setTitle("");
+      onCardCreated(card);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create task.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,7 +112,7 @@ export default function Column({
           variant="ghost"
           size="icon-sm"
           aria-label={`Add task to ${column.name}`}
-          onClick={() => onAddTaskClick(column)}
+          onClick={openAdder}
           className="border-gray cursor-pointer"
         >
           <Plus className="size-5" />
@@ -93,20 +135,59 @@ export default function Column({
             />
           ))}
         </div>
-      ) : (
-        <></>
-      )}
+      ) : null}
 
-      <div className={`${cards.length > 0 ? "px-3 pb-3" : "p-3"}`}>
-        <Button
-          variant="ghost"
-          className="mt-1 cursor-pointer bg-blue-100! text-[#2563EB]! font-bold w-full justify-center gap-2 hover:bg-[#2563EB] border-border text-sm"
-          onClick={() => onAddTaskClick(column)}
-        >
-          <Plus className="size-4" />
-          Add Task
-        </Button>
-      </div>
+      {/* Inline title adder */}
+      {isAdding ? (
+        <div className="px-3 pb-3 pt-2 flex flex-col gap-2">
+          <Input
+            ref={inputRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Task title..."
+            className="h-9"
+            disabled={isSubmitting}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void handleCreate();
+              if (e.key === "Escape") cancelAdder();
+            }}
+          />
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/80"
+              onClick={() => void handleCreate()}
+              disabled={isSubmitting || !title.trim()}
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                "Create"
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={cancelAdder}
+              disabled={isSubmitting}
+              aria-label="Cancel"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className={`${cards.length > 0 ? "px-3 pb-3" : "p-3"}`}>
+          <Button
+            variant="ghost"
+            className="mt-1 cursor-pointer bg-blue-100! text-[#2563EB]! font-bold w-full justify-center gap-2 hover:bg-[#2563EB] border-border text-sm"
+            onClick={openAdder}
+          >
+            <Plus className="size-4" />
+            Add Task
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

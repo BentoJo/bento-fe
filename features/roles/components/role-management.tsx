@@ -29,6 +29,7 @@ import {
 import { deleteRole } from "@/features/roles/api/roles";
 import { useRoles } from "@/features/roles/hooks/use-roles";
 import type { WorkspaceRole } from "@/features/roles/types/role";
+import { CreateRoleDialog } from "@/features/roles/components/create-role-dialog";
 import { RolePermissionsDialog } from "@/features/roles/components/role-permissions-dialog";
 import Label from "@/shared/components/svgs/Label";
 import PlusIcon from "@/shared/components/svgs/PlusIcon";
@@ -161,6 +162,7 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
   const [selectedRole, setSelectedRole] = useState<WorkspaceRole | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const handleDelete = useCallback(
     async (role: WorkspaceRole) => {
@@ -201,13 +203,12 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
           </div>
         </div>
 
-        {/* TODO(BE): no create-role endpoint (only from-authz references an
-            existing authz role) — disabled until a contract exists. */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <span tabIndex={0}>
                 <Button
+                  onClick={() => setCreateOpen(true)}
                   className="
                           h-10
                           rounded-[8px]
@@ -265,6 +266,12 @@ export function RoleManagement({ workspaceId }: { workspaceId: string }) {
         )}
       </div>
 
+      <CreateRoleDialog
+        workspaceId={workspaceId}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={refetch}
+      />
       <RolePermissionsDialog
         workspaceId={workspaceId}
         role={selectedRole}

@@ -16,7 +16,8 @@ interface ColumnsListProps {
   cardsByColumn: Record<string, Card[]>;
   refetch: () => void;
   onCardClick: (card: Card) => void;
-  onAddTaskClick: (column: ColumnType) => void;
+  /** Called after a new card is created inline — opens the details dialog. */
+  onCardCreated: (card: Card) => void;
   onDragStartCard: (cardId: string) => void;
   onDragEndCard: () => void;
   dragOverColumnId: string | null;
@@ -31,7 +32,7 @@ export function ColumnsList({
   cardsByColumn,
   refetch,
   onCardClick,
-  onAddTaskClick,
+  onCardCreated,
   onDragStartCard,
   onDragEndCard,
   dragOverColumnId,
@@ -85,7 +86,10 @@ export function ColumnsList({
               onDragStartCard={onDragStartCard}
               onDragEndCard={onDragEndCard}
               onCardClick={onCardClick}
-              onAddTaskClick={onAddTaskClick}
+              onCardCreated={(card) => {
+                refetch();
+                onCardCreated(card);
+              }}
             />
           );
         })}

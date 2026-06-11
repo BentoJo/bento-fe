@@ -136,3 +136,12 @@ export async function transferWorkspaceOwnership(
     fail(error, "Failed to transfer ownership.");
   }
 }
+
+// TODO(BE): confirm leave route (assumed POST /v1/workspace/{id}/leave)
+export async function exitWorkspace(workspaceId: string): Promise<void> {
+  try {
+    await getClientAxios().post(`${BASE}/${workspaceId}/leave`);
+  } catch (error) {
+    fail(error, "Failed to exit workspace.");
+  }
+}

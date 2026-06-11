@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   BarChart3,
   CalendarClock,
@@ -49,10 +52,18 @@ export function WorkspaceDashboard({
   workspaceId,
   user,
 }: WorkspaceDashboardProps) {
+  const router = useRouter();
   const { overview, isLoading, error } = useWorkspaceOverview(workspaceId);
   const firstName = user.firstName ?? "there";
   const fullName =
     [user.firstName, user.lastName].filter(Boolean).join(" ") || undefined;
+
+  useEffect(() => {
+    if (error && /not a workspace member/i.test(error)) {
+      toast.error("You are not a member of this workspace.");
+      router.push("/home");
+    }
+  }, [error, router]);
 
   return (
     <div className="flex flex-col mx-12 gap-6 p-4 lg:p-6">
@@ -92,7 +103,7 @@ export function WorkspaceDashboard({
           <div className="flex gap-6">
             <DaySchedulePanel />
 
-            <ActiveMembersPanel/>
+            <ActiveMembersPanel workspaceId={workspaceId} />
           </div>
 
         </div>

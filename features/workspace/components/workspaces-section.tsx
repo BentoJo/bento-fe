@@ -14,8 +14,12 @@ interface WorkspacesSectionProps {
   viewAllHref?: string;
   /** Message shown when the list is empty and not loading. */
   emptyMessage: string;
-  /** Mark cards as starred (favorites section, visual only). */
+  /** Mark all cards as starred (use for a favorites-only section). */
   starred?: boolean;
+  /** Predicate to determine per-card star state. Takes precedence over `starred`. */
+  isFavorite?: (id: string) => boolean;
+  /** Called when the user clicks the star on a card. */
+  onToggleFavorite?: (id: string) => void;
   className?: string;
 }
 
@@ -41,6 +45,8 @@ export function WorkspacesSection({
   viewAllHref,
   emptyMessage,
   starred = false,
+  isFavorite,
+  onToggleFavorite,
   className,
 }: WorkspacesSectionProps) {
   const hasItems = workspaces.length > 0;
@@ -71,7 +77,12 @@ export function WorkspacesSection({
       ) : hasItems ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((ws) => (
-            <WorkspaceCard key={ws.id} workspace={ws} starred={starred} />
+            <WorkspaceCard
+              key={ws.id}
+              workspace={ws}
+              starred={isFavorite ? isFavorite(ws.id) : starred}
+              onToggleFavorite={onToggleFavorite}
+            />
           ))}
         </div>
       ) : (

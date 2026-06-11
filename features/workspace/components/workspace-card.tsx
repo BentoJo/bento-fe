@@ -9,15 +9,21 @@ import type { WorkspaceListItem } from "@/shared/types/workspace";
 
 interface WorkspaceCardProps {
   workspace: WorkspaceListItem;
-  /** Visual-only filled star (favorites section). No favorites flag in the API yet. */
+  /** Whether this workspace is currently starred. */
   starred?: boolean;
+  /** Called when the user clicks the star button. */
+  onToggleFavorite?: (id: string) => void;
 }
 
 function initial(name: string): string {
   return name.trim()[0]?.toUpperCase() ?? "W";
 }
 
-export function WorkspaceCard({ workspace, starred = false }: WorkspaceCardProps) {
+export function WorkspaceCard({
+  workspace,
+  starred = false,
+  onToggleFavorite,
+}: WorkspaceCardProps) {
   const { id, name, logoUrl, roleId } = workspace;
 
   return (
@@ -37,13 +43,26 @@ export function WorkspaceCard({ workspace, starred = false }: WorkspaceCardProps
           )}
         </div>
         <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Star
-            className={cn(
-              "size-4",
-              starred ? "fill-amber-400 text-amber-400" : "text-muted-foreground/50",
-            )}
-            aria-hidden
-          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite?.(id);
+            }}
+            aria-label={starred ? "Remove from favorites" : "Add to favorites"}
+            className="cursor-pointer rounded p-0.5 transition-colors hover:text-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Star
+              className={cn(
+                "size-4",
+                starred
+                  ? "fill-amber-400 text-amber-400"
+                  : "text-muted-foreground/50",
+              )}
+              aria-hidden
+            />
+          </button>
           <MoreHorizontal className="size-4" aria-hidden />
         </div>
       </div>

@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ExternalLink } from "lucide-react";
 import {
   Tabs,
@@ -10,9 +13,19 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import { RoleManagement } from "@/features/roles/components/role-management";
 import { SessionsTab } from "@/features/settings/components/sessions-tab";
 import { NotificationsTab } from "@/features/settings/components/notifications-tab";
+import { TransferOwnershipDialog } from "@/features/settings/components/transfer-ownership-dialog";
+import { exitWorkspace } from "@/features/workspace/api/workspace";
 import { cairo } from "@/shared/lib/fonts";
 import WorkspaceIcon from "@/shared/components/svgs/WorkspaceIcon";
 import { cn } from "@/shared/lib/utils";
@@ -89,7 +102,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
 
         <TabsContent value="workspace" className="mt-5 flex flex-col gap-4">
           <WorkspaceInfoCard />
-          <DangerZoneCard />
+          <DangerZoneCard workspaceId={workspaceId} />
         </TabsContent>
 
         <TabsContent value="sessions" className="mt-5">
@@ -233,60 +246,148 @@ function WorkspaceInfoCard() {
 /* ─────────────────────────────────────────
    Danger Zone Card
 ───────────────────────────────────────── */
-function DangerZoneCard() {
+interface DangerZoneCardProps {
+  workspaceId: string;
+}
+
+function DangerZoneCard({ workspaceId }: DangerZoneCardProps) {
+  const router = useRouter();
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+
+  async function handleExit() {
+    setExiting(true);
+    try {
+      await exitWorkspace(workspaceId);
+      toast.success("You left the workspace.");
+      router.push("/home");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to exit workspace.");
+    } finally {
+      setExiting(false);
+      setExitDialogOpen(false);
+    }
+  }
+
   return (
-    <div
-      className="rounded-[16px] bg-white p-6 flex flex-col gap-5"
-      style={{ border: "1.5px solid #FA4747" }}
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Alert className="size-5 text-[#B30909]" />
-        <h2
-          className={`text-[18px] ${cairo.className} font-bold text-[#B30909]`}
-        >
-          Danger Zone
-        </h2>
-      </div>
-
-      <div className="flex items-center justify-between py-3 border-b border-[#F1F5F9]">
-        <div className="flex flex-col gap-0.5">
-          <span
-            className={` ${cairo.className}  text-[16px] font-bold text-[#0F172A]`}
+    <>
+      <div
+        className="rounded-[16px] bg-white p-6 flex flex-col gap-5"
+        style={{ border: "1.5px solid #FA4747" }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <Alert className="size-5 text-[#B30909]" />
+          <h2
+            className={`text-[18px] ${cairo.className} font-bold text-[#B30909]`}
           >
-            Exit Workspace
-          </span>
-          <span className="text-[12px] text-[#64748B]">
-            Receive notifications when a task is assigned to you.
-          </span>
+            Danger Zone
+          </h2>
         </div>
-        <button className="p-2 rounded-lg hover:bg-[#FEF2F2] transition-colors">
-          <LogoutIcon
-            className="size-5 text-[#EF4444] "
-            width={24}
-            height={24}
-          />
-        </button>
-      </div>
 
-      {/* Delete Workspace row */}
-      <div className="flex items-center justify-between py-1">
-        <div className="flex flex-col gap-0.5">
-          <span
-            className={` ${cairo.className}  text-[16px] font-bold text-[#0F172A]`}
+        {/* Exit Workspace row */}
+        <div className="flex items-center justify-between py-3 border-b border-[#F1F5F9]">
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={` ${cairo.className}  text-[16px] font-bold text-[#0F172A]`}
+            >
+              Exit Workspace
+            </span>
+            <span className="text-[12px] text-[#64748B]">
+              Receive notifications when a task is assigned to you.
+            </span>
+          </div>
+          <button
+            className="p-2 rounded-lg hover:bg-[#FEF2F2] transition-colors"
+            onClick={() => setExitDialogOpen(true)}
+          >
+            <LogoutIcon
+              className="size-5 text-[#EF4444] "
+              width={24}
+              height={24}
+            />
+          </button>
+        </div>
+
+        {/* Transfer Ownership row */}
+        <div className="flex items-center justify-between py-3 border-b border-[#F1F5F9]">
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={` ${cairo.className}  text-[16px] font-bold text-[#0F172A]`}
+            >
+              Transfer Ownership
+            </span>
+            <span className="text-[12px] text-[#64748B]">
+              Transfer this workspace to another member. This action cannot be easily reversed.
+            </span>
+          </div>
+          <Button
+            className={` gap-2 bg-[#D20C0C] ${cairo.className} hover:bg-[#D20C0C]/80 text-white font-bold px-5 py-2.5 h-auto text-[13px] rounded-[10px]`}
+            onClick={() => setTransferDialogOpen(true)}
+          >
+            Transfer Ownership
+          </Button>
+        </div>
+
+        {/* Delete Workspace row */}
+        <div className="flex items-center justify-between py-1">
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={` ${cairo.className}  text-[16px] font-bold text-[#0F172A]`}
+            >
+              Delete Workspace
+            </span>
+            <span className="text-[12px] text-[#64748B]">
+              Receive notifications when a task is assigned to you.
+            </span>
+          </div>
+          <Button
+            className={` gap-2 bg-[#D20C0C] ${cairo.className} hover:bg-[#D20C0C]/80 text-white font-bold px-5 py-2.5 h-auto text-[13px] rounded-[10px]`}
           >
             Delete Workspace
-          </span>
-          <span className="text-[12px] text-[#64748B]">
-            Receive notifications when a task is assigned to you.
-          </span>
+          </Button>
         </div>
-        <Button
-          className={` gap-2 bg-[#D20C0C] ${cairo.className} hover:bg-[#D20C0C]/80 text-white font-bold px-5 py-2.5 h-auto text-[13px] rounded-[10px]`}
-        >
-          Delete Workspace
-        </Button>
       </div>
-    </div>
+
+      {/* Exit Workspace confirmation dialog */}
+      <Dialog open={exitDialogOpen} onOpenChange={setExitDialogOpen}>
+        <DialogContent className={cairo.className}>
+          <DialogHeader>
+            <DialogTitle className="text-[18px] font-bold text-[#0F172A]">
+              Exit Workspace
+            </DialogTitle>
+            <DialogDescription className="text-[14px] text-[#64748B] mt-2">
+              Are you sure you want to leave this workspace? You&apos;ll lose
+              access to its boards and tasks.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              className={`px-6 py-2 h-auto text-[14px] font-semibold ${cairo.className} hover:bg-[#EFF6FF]/80`}
+              onClick={() => setExitDialogOpen(false)}
+              disabled={exiting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className={`bg-[#D20C0C] hover:bg-[#D20C0C]/80 text-white font-bold px-5 py-2.5 h-auto text-[14px] rounded-[10px] ${cairo.className}`}
+              onClick={handleExit}
+              disabled={exiting}
+            >
+              {exiting ? "Leaving…" : "Leave Workspace"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer Ownership dialog */}
+      <TransferOwnershipDialog
+        workspaceId={workspaceId}
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+      />
+    </>
   );
 }

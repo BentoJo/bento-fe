@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ChevronRight,
@@ -12,17 +13,18 @@ import {
   ListFilter,
   Plus,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useBoard } from "@/features/boards/hooks/use-board";
-import { useCardActions } from "@/features/boards/hooks/use-card";
 import { useColumnActions } from "@/features/boards/hooks/use-column";
+import { useBoardStore } from "@/features/boards/store/board-store";
 import type { Card, Column } from "@/features/boards/types/board";
 import { TaskDrawer } from "@/features/boards/components/task-drawer";
 import { TaskDetailsDialog } from "@/features/boards/components/task-details-dialog";
 import { ColumnsList } from "@/features/boards/components/columns-list";
 import { ManageColumnsDialog } from "@/features/boards/components/manage-columns-dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
+import { Input } from "@/shared/components/ui/input"; // used in EmptyBoard
 import { Skeleton } from "@/shared/components/ui/skeleton";
 
 interface KanbanBoardProps {
@@ -31,12 +33,26 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
+  const router = useRouter();
   const { board, columns, cardsByColumn, isLoading, error, refetch } = useBoard(
     workspaceId,
     boardId,
   );
 
-  const [createForColumn, setCreateForColumn] = useState<Column | null>(null);
+  // Task 3: redirect to boards list if user is not a board member
+  const redirectedRef = useRef(false);
+  useEffect(() => {
+    if (
+      error &&
+      !redirectedRef.current &&
+      error.toLowerCase().includes("not a board member")
+    ) {
+      redirectedRef.current = true;
+      toast.error("You are not a member of this board.");
+      router.push(`/w/${workspaceId}/boards`);
+    }
+  }, [error, workspaceId, router]);
+
   const [detailsCard, setDetailsCard] = useState<Card | null>(null);
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
@@ -45,27 +61,40 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
     open: boolean;
     mode: "create" | "edit";
     card: Card | null;
-  }>({ open: false, mode: "create", card: null });
+    column: Column | null;
+  }>({ open: false, mode: "create", card: null, column: null });
 
   useEffect(() => {
     const handler = (e: CustomEvent<Card>) => {
-      setTaskDrawer({ open: true, mode: "edit", card: e.detail });
+      setTaskDrawer({ open: true, mode: "edit", card: e.detail, column: null });
     };
     window.addEventListener("open-edit-task", handler as EventListener);
     return () =>
       window.removeEventListener("open-edit-task", handler as EventListener);
   }, []);
 
-  const openCreateDrawer = (column: Column) => {
-    setCreateForColumn(column);
-    setTaskDrawer({ open: true, mode: "create", card: null });
-  };
+  // Task 7: board store for optimistic DnD
+  const { setBoardData, moveCardOptimistic, cardsByColumn: storeCardsByColumn } =
+    useBoardStore();
 
-  const { moveCard: moveCardAction } = useCardActions(
-    workspaceId,
-    boardId,
-    refetch,
-  );
+  // Keep store in sync with server data after each load/refetch
+  useEffect(() => {
+    if (!isLoading && columns.length > 0) {
+      setBoardData(workspaceId, boardId, columns, cardsByColumn);
+    }
+  }, [isLoading, columns, cardsByColumn, workspaceId, boardId, setBoardData]);
+
+  // Use store-derived cardsByColumn for rendering (gives optimistic updates)
+  const displayCardsByColumn =
+    Object.keys(storeCardsByColumn).length > 0
+      ? storeCardsByColumn
+      : cardsByColumn;
+
+  // Task 4: after inline card creation, refetch board and open details dialog
+  const handleCardCreated = (card: Card) => {
+    refetch();
+    setDetailsCard(card);
+  };
 
   const boardName = board?.name ?? "Board";
 
@@ -75,14 +104,15 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
     setDragOverColumnId(null);
     if (!cardId) return;
 
-    const card = findCard(cardsByColumn, cardId);
+    const card = findCard(displayCardsByColumn, cardId);
     if (!card || card.columnId === targetColumn.id) return;
 
-    const position = (cardsByColumn[targetColumn.id]?.length ?? 0) + 1;
-    await moveCardAction(cardId, {
-      columnId: targetColumn.id,
-      position,
-    });
+    const toIndex = displayCardsByColumn[targetColumn.id]?.length ?? 0;
+    const ok = await moveCardOptimistic(cardId, targetColumn.id, toIndex);
+    if (!ok) {
+      toast.error("Failed to move task. Changes reverted.");
+      refetch();
+    }
   };
 
   return (
@@ -179,10 +209,10 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
           workspaceId={workspaceId}
           boardId={boardId}
           columns={columns}
-          cardsByColumn={cardsByColumn}
+          cardsByColumn={displayCardsByColumn}
           refetch={refetch}
           onCardClick={(card) => setDetailsCard(card)}
-          onAddTaskClick={openCreateDrawer}
+          onCardCreated={handleCardCreated}
           onDragStartCard={(cardId) => setDraggingCardId(cardId)}
           onDragEndCard={() => setDraggingCardId(null)}
           dragOverColumnId={dragOverColumnId}
@@ -191,19 +221,18 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
         />
       )}
 
-      {/* Create / Edit Task drawer */}
+      {/* Edit Task drawer (create flow now handled inline in Column) */}
       <TaskDrawer
         mode={taskDrawer.mode}
         cardToEdit={taskDrawer.card}
         workspaceId={workspaceId}
         boardId={boardId}
-        column={createForColumn}
+        column={taskDrawer.column}
         columns={columns}
         open={taskDrawer.open}
         onOpenChange={(open) => {
           if (!open) {
-            setTaskDrawer({ open: false, mode: "create", card: null });
-            setCreateForColumn(null);
+            setTaskDrawer({ open: false, mode: "create", card: null, column: null });
           }
         }}
         onCreated={refetch}
@@ -217,6 +246,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
         card={detailsCard}
         open={Boolean(detailsCard)}
         onOpenChange={(open) => !open && setDetailsCard(null)}
+        onMutated={refetch}
       />
 
       {/* Manage Columns Dialog */}
