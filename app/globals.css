@@ -180,13 +180,20 @@
   }
 }
 
+/* Browser autofill: keep the field background TRANSPARENT (the input's own
+   bg shows through) instead of Chrome's yellow/dark default. No inset
+   box-shadow mask is used; the 9999s background-color transition defers the
+   autofill paint indefinitely so the yellow never appears. Only the text and
+   caret colors are forced to the theme foreground. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
-  -webkit-text-fill-color: white !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground);
+  -webkit-background-clip: text;
+  background-clip: text;
   transition: background-color 9999s ease-in-out 0s;
-  caret-color: white;
-  box-shadow: 0 0 0px 1000px #1E293B inset;
 }

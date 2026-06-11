@@ -337,7 +337,13 @@ export async function listCardChecklists(
     const res = await getClientAxios().get<ApiEnvelope<{ checklists: CardChecklist[] }>>(
       `${cardsPath(workspaceId, boardId)}/${cardId}/checklists`,
     );
-    return unwrap<{ checklists: CardChecklist[] }>(res).checklists;
+    const checklists = unwrap<{ checklists: CardChecklist[] }>(res).checklists;
+    // proto3 omits empty `repeated` fields, so `items` may be absent — normalize
+    // to an array so the UI can safely .map()/.length over it.
+    return (Array.isArray(checklists) ? checklists : []).map((c) => ({
+      ...c,
+      items: Array.isArray(c.items) ? c.items : [],
+    }));
   } catch (error) {
     fail(error, "Failed to load checklists.");
   }
@@ -354,7 +360,8 @@ export async function createChecklist(
       `${cardsPath(workspaceId, boardId)}/${cardId}/checklists`,
       body,
     );
-    return unwrap<CardChecklist>(res);
+    const cl = unwrap<CardChecklist>(res);
+    return { ...cl, items: Array.isArray(cl.items) ? cl.items : [] };
   } catch (error) {
     fail(error, "Failed to create checklist.");
   }
@@ -423,7 +430,9 @@ export async function listWorkspaceLabels(
     const res = await getClientAxios().get<ApiEnvelope<ListLabelsResponse>>(
       `${BASE}/${workspaceId}/labels`,
     );
-    return unwrap<ListLabelsResponse>(res);
+    const data = unwrap<ListLabelsResponse>(res);
+    // proto3 may omit an empty `labels` array — normalize.
+    return { labels: Array.isArray(data?.labels) ? data.labels : [] };
   } catch (error) {
     fail(error, "Failed to load workspace labels.");
   }

@@ -10,7 +10,7 @@ const FormContainer = ({ className, children }: FormContainerProps) => {
         <Image
           width={1536.46}
           height={380.68}
-          src="/Logo.svg"
+          src="/Logo-light.svg"
           alt="ManeJo Logo"
           className="w-64"
           loading="eager"

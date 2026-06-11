@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Globe,
@@ -8,12 +8,24 @@ import {
   Loader2,
   Lock,
   Plus,
+  Search,
   Star,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createBoard } from "@/features/boards/api/boards";
+import { addBoardMember } from "@/features/boards/api/board-members";
+import { listMembers } from "@/features/members/api/members";
+import type { WorkspaceMember } from "@/features/members/types/member";
 import type { CreateBoardRequest } from "@/features/boards/types/board";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { userFullName, userInitials } from "@/shared/lib/user";
 import {
   boardSchema,
   type BoardFormValues,
@@ -54,12 +66,58 @@ export function CreateBoardDialog({
 }: CreateBoardDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Workspace members available to add to the new board.
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [pickedUserIds, setPickedUserIds] = useState<string[]>([]);
+
   const { control, handleSubmit, watch, reset, setError } =
     useForm<BoardFormValues>({ defaultValues: EMPTY });
 
+  const loadMembers = useCallback(async () => {
+    if (!workspaceId) return;
+    try {
+      const res = await listMembers(workspaceId, { page: 1, limit: 100 });
+      setMembers(Array.isArray(res?.members) ? res.members : []);
+    } catch {
+      setMembers([]);
+    }
+  }, [workspaceId]);
+
   useEffect(() => {
-    if (open) reset(EMPTY);
-  }, [open, reset]);
+    if (open) {
+      reset(EMPTY);
+      setPickedUserIds([]);
+      setMemberSearch("");
+      void loadMembers();
+    }
+  }, [open, reset, loadMembers]);
+
+  const filteredMembers = useMemo(() => {
+    const q = memberSearch.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) =>
+      [userFullName(m.user ?? { id: m.userId }), m.user?.email ?? ""]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [members, memberSearch]);
+
+  const nameByUserId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of members) {
+      map.set(m.userId, userFullName(m.user ?? { id: m.userId }));
+    }
+    return map;
+  }, [members]);
+
+  const toggleMember = (userId: string) =>
+    setPickedUserIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
+    );
 
   const nameValue = watch("name");
   const iconValue = watch("icon");
@@ -87,13 +145,34 @@ export function CreateBoardDialog({
 
     setIsSubmitting(true);
     try {
-      await createBoard(workspaceId, body);
-      toast.success(`Board "${parsed.data.name}" created.`);
+      const board = await createBoard(workspaceId, body);
+
+      // Add the picked workspace members to the freshly created board.
+      // Best-effort: the board already exists, so a member failure shouldn't
+      // discard it — surface a partial warning instead.
+      let failedMembers = 0;
+      if (pickedUserIds.length > 0 && board?.id) {
+        const results = await Promise.allSettled(
+          pickedUserIds.map((userId) =>
+            addBoardMember(workspaceId, board.id, userId),
+          ),
+        );
+        failedMembers = results.filter((r) => r.status === "rejected").length;
+      }
+
+      if (failedMembers > 0) {
+        toast.warning(
+          `Board created, but ${failedMembers} member(s) could not be added.`,
+        );
+      } else {
+        toast.success(`Board "${parsed.data.name}" created.`);
+      }
+
       reset(EMPTY);
+      setPickedUserIds([]);
       onOpenChange(false);
       onCreated?.();
     } catch (err) {
-      // TODO(BE): gateway board create not implemented yet.
       toast.error(getErrorMessage(err) || "Failed to create board.");
     } finally {
       setIsSubmitting(false);
@@ -202,29 +281,96 @@ export function CreateBoardDialog({
               )}
             />
 
-            {/* Invite Members — disabled "soon". */}
+            {/* Add Members — pick workspace members to add on creation. */}
             <Field>
-              <FieldLabel>Invite Members</FieldLabel>
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="size-8 rounded-full border-2 border-background bg-muted"
-                    />
+              <FieldLabel>Add Members</FieldLabel>
+
+              {pickedUserIds.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {pickedUserIds.map((id) => (
+                    <span
+                      key={id}
+                      className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs text-foreground"
+                    >
+                      {nameByUserId.get(id) ?? id.slice(0, 8)}
+                      <button
+                        type="button"
+                        onClick={() => toggleMember(id)}
+                        aria-label={`Remove ${nameByUserId.get(id) ?? id}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </span>
                   ))}
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  aria-label="Invite members (coming soon)"
-                  disabled
-                >
-                  <Plus className="size-4" />
-                </Button>
-                <span className="text-xs text-muted-foreground">Soon</span>
+              ) : null}
+
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  placeholder="Search workspace members..."
+                  className="pl-9"
+                />
               </div>
+
+              <ScrollArea className="max-h-40 rounded-lg border border-border">
+                {filteredMembers.length === 0 ? (
+                  <p className="px-3 py-3 text-sm text-muted-foreground">
+                    No workspace members found.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-1 p-1">
+                    {filteredMembers.map((m) => {
+                      const active = pickedUserIds.includes(m.userId);
+                      return (
+                        <li key={m.id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleMember(m.userId)}
+                            className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted"
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              <Avatar className="size-7">
+                                {m.user?.avatarUrl && (
+                                  <AvatarImage
+                                    src={m.user.avatarUrl}
+                                    alt={userFullName(m.user)}
+                                  />
+                                )}
+                                <AvatarFallback className="text-[10px]">
+                                  {userInitials(m.user ?? { id: m.userId })}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="flex min-w-0 flex-col">
+                                <span className="truncate text-sm text-foreground">
+                                  {userFullName(m.user ?? { id: m.userId })}
+                                </span>
+                                {m.user?.email && (
+                                  <span className="truncate text-xs text-muted-foreground">
+                                    {m.user.email}
+                                  </span>
+                                )}
+                              </span>
+                            </span>
+                            <span
+                              className={cn(
+                                "flex size-6 items-center justify-center rounded-full border",
+                                active
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border text-muted-foreground",
+                              )}
+                            >
+                              <Plus className="size-3.5" />
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </ScrollArea>
             </Field>
           </div>
 

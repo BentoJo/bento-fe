@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader2, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { updateProfile } from "@/features/profile/api/update-profile";
+import {
+  getProfile,
+  updateProfile,
+  type ProfileData,
+} from "@/features/profile/api/update-profile";
 
 interface ProfileUser {
   id?: string;
@@ -48,6 +52,11 @@ function initials(user: ProfileUser): string {
 
 export function ProfileSettings({ user }: { user: ProfileUser }) {
   const router = useRouter();
+  // Seed from the session-provided user, then hydrate from the full profile.
+  const [userId, setUserId] = useState(user.id ?? "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    user.avatarUrl ?? null,
+  );
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
@@ -55,19 +64,57 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
   const [gender, setGender] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  // Apply a freshly-fetched/updated profile to the form state.
+  const applyProfile = useCallback((p: ProfileData) => {
+    if (p.id) setUserId(p.id);
+    setAvatarUrl(p.avatarUrl ?? null);
+    setFirstName(p.firstName ?? "");
+    setLastName(p.lastName ?? "");
+    setEmail(p.email ?? "");
+    // dob may arrive as an ISO datetime; <input type="date"> needs YYYY-MM-DD.
+    setBirthDate(p.dob ? p.dob.slice(0, 10) : "");
+    setGender(p.gender ?? "");
+    setPhone(p.phone ?? "");
+    setBio(p.bio ?? "");
+  }, []);
+
+  // Load the full profile (session token does not carry bio/phone/dob/gender).
+  useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    getProfile()
+      .then((p) => {
+        if (active) applyProfile(p);
+      })
+      .catch((err) => {
+        if (active) {
+          toast.error(
+            err instanceof Error ? err.message : "Failed to load profile.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [applyProfile]);
 
   const handleSave = async () => {
-    if (!user.id) {
+    if (!userId) {
       toast.error("Missing user id — cannot save profile.");
       return;
     }
     setIsSaving(true);
     try {
-      await updateProfile({
-        userId: user.id,
+      const updated = await updateProfile({
+        userId,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
         bio: bio || undefined,
@@ -75,7 +122,10 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
         dob: birthDate || undefined,
         gender: gender || undefined,
       });
+      // Reflect the persisted values immediately (no reliance on the session).
+      applyProfile(updated);
       toast.success("Profile updated");
+      // Refresh server components (e.g. topbar) that read the session name.
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update profile.");
@@ -145,11 +195,11 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
           </h2>
           <div className="flex flex-wrap items-center gap-4">
             <Avatar className="size-16">
-              {user.avatarUrl ? (
-                <AvatarImage src={user.avatarUrl} alt={fullName} />
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={fullName} />
               ) : null}
               <AvatarFallback className="text-lg">
-                {initials(user)}
+                {initials({ firstName, lastName })}
               </AvatarFallback>
             </Avatar>
             {/* TODO(BE): no avatar upload endpoint on gateway. */}
@@ -272,7 +322,7 @@ export function ProfileSettings({ user }: { user: ProfileUser }) {
           <Button variant="outline" asChild>
             <Link href="/profile">Cancel</Link>
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving || isLoading}>
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" />

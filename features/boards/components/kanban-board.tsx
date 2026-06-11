@@ -12,6 +12,7 @@ import {
   KanbanSquare,
   ListFilter,
   Plus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ import { TaskDrawer } from "@/features/boards/components/task-drawer";
 import { TaskDetailsDialog } from "@/features/boards/components/task-details-dialog";
 import { ColumnsList } from "@/features/boards/components/columns-list";
 import { ManageColumnsDialog } from "@/features/boards/components/manage-columns-dialog";
+import { BoardMembersDialog } from "@/features/boards/components/board-members-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input"; // used in EmptyBoard
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -57,6 +59,7 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
   const [manageColumnsOpen, setManageColumnsOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const [taskDrawer, setTaskDrawer] = useState<{
     open: boolean;
     mode: "create" | "edit";
@@ -163,6 +166,15 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
               variant="outline"
               size="sm"
               className="gap-2 cursor-pointer"
+              onClick={() => setMembersOpen(true)}
+            >
+              <Users className="size-4" />
+              Members
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer"
             >
               <Filter className="size-4" />
               Filter
@@ -257,6 +269,15 @@ export function KanbanBoard({ workspaceId, boardId }: KanbanBoardProps) {
         open={manageColumnsOpen}
         onOpenChange={setManageColumnsOpen}
         refetch={refetch}
+      />
+
+      {/* Board Members Dialog */}
+      <BoardMembersDialog
+        workspaceId={workspaceId}
+        boardId={boardId}
+        open={membersOpen}
+        onOpenChange={setMembersOpen}
+        onChanged={refetch}
       />
     </div>
   );

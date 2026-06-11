@@ -6,8 +6,8 @@ import { signIn } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 import { ChevronLeft, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
+// Logo is rendered once by FormContainer; no separate logo here.
 
-import Image from "next/image";
 
 import { getErrorMessage } from "@/shared/types/api/errors";
 import { storeDeviceId } from "@/shared/lib/auth/session";
@@ -170,18 +170,6 @@ export function LoginForm() {
         <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
 
           <FormContainer className="w-full max-w-[520px] h-[700px] rounded-[24px] border-[#E4EAF5] bg-white px-8 py-10 lg:px-12 lg:py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-            {isEmailStep && (
-              <div className="mb-6 flex justify-center">
-                <Image
-                  src="/Logo-light.svg"
-                  width={140}
-                  height={40}
-                  alt="ManeJo"
-                  priority
-                />
-              </div>
-            )}
-
             {isOtpStep && (
               <div className="mb-8 flex justify-center">
                 <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#DCE9FF]">
