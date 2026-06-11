@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Briefcase,
   Building2,
@@ -12,6 +15,7 @@ import {
   Users,
   VenusAndMars,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
@@ -22,6 +26,10 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/shared/components/ui/avatar";
+import {
+  getProfile,
+  type ProfileData,
+} from "@/features/profile/api/update-profile";
 
 interface ProfileUser {
   firstName?: string;
@@ -30,14 +38,31 @@ interface ProfileUser {
   avatarUrl?: string | null;
 }
 
-// Placeholder for any field the gateway does not yet expose.
-// TODO(BE): needs IAM user profile on gateway.
+// Shown for any field that is genuinely empty / not provided.
 const EMPTY = "—";
 
-function initials(user: ProfileUser): string {
-  const f = user.firstName?.[0] ?? "";
-  const l = user.lastName?.[0] ?? "";
+const GENDER_LABEL: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+  "prefer-not": "Prefer not to say",
+};
+
+function initials(first?: string, last?: string): string {
+  const f = first?.[0] ?? "";
+  const l = last?.[0] ?? "";
   return (f + l).toUpperCase() || "U";
+}
+
+function formatDate(value?: string | null): string {
+  if (!value) return EMPTY;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return EMPTY;
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function AboutRow({
@@ -70,7 +95,39 @@ function AboutRow({
 }
 
 export function ProfileView({ user }: { user: ProfileUser }) {
-  const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+  // Seed from the session user, then hydrate the full profile from the API.
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getProfile()
+      .then((p) => {
+        if (active) setProfile(p);
+      })
+      .catch((err) => {
+        if (active) {
+          toast.error(
+            err instanceof Error ? err.message : "Failed to load profile.",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const firstName = profile?.firstName ?? user.firstName ?? "";
+  const lastName = profile?.lastName ?? user.lastName ?? "";
+  const email = profile?.email ?? user.email ?? "";
+  const avatarUrl = profile?.avatarUrl ?? user.avatarUrl ?? null;
+  const bio = profile?.bio?.trim() || "";
+  const phone = profile?.phone?.trim() || EMPTY;
+  const birthDate = formatDate(profile?.dob);
+  const gender = profile?.gender
+    ? GENDER_LABEL[profile.gender] ?? profile.gender
+    : EMPTY;
+  const joinedDate = formatDate(profile?.createdAt);
+  const fullName = `${firstName} ${lastName}`.trim();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
@@ -96,11 +153,11 @@ export function ProfileView({ user }: { user: ProfileUser }) {
         {/* Header: avatar + name + meta */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <Avatar className="size-24 shrink-0">
-            {user.avatarUrl ? (
-              <AvatarImage src={user.avatarUrl} alt={fullName} />
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={fullName} />
             ) : null}
             <AvatarFallback className="text-2xl">
-              {initials(user)}
+              {initials(firstName, lastName)}
             </AvatarFallback>
           </Avatar>
 
@@ -119,9 +176,14 @@ export function ProfileView({ user }: { user: ProfileUser }) {
                 {EMPTY}
               </span>
             </div>
-            {/* TODO(BE): bio not on gateway. */}
-            <p className="mt-3 max-w-lg text-sm text-muted-foreground/60">
-              No bio yet.
+            <p
+              className={
+                bio
+                  ? "mt-3 max-w-lg text-sm text-foreground"
+                  : "mt-3 max-w-lg text-sm text-muted-foreground/60"
+              }
+            >
+              {bio || "No bio yet."}
             </p>
           </div>
         </div>
@@ -135,15 +197,18 @@ export function ProfileView({ user }: { user: ProfileUser }) {
               About
             </h3>
             <div className="divide-y divide-border">
-              {/* Real value from session. */}
-              <AboutRow icon={Mail} label="Email" value={user.email || EMPTY} />
-              {/* TODO(BE): the fields below need IAM user profile on gateway. */}
+              <AboutRow icon={Mail} label="Email" value={email || EMPTY} />
+              <AboutRow icon={Phone} label="Phone" value={phone} />
+              <AboutRow icon={Calendar} label="Birth Date" value={birthDate} />
+              <AboutRow icon={VenusAndMars} label="Gender" value={gender} />
+              <AboutRow
+                icon={CalendarDays}
+                label="Joined Date"
+                value={joinedDate}
+              />
+              <AboutRow icon={FileText} label="Bio" value={bio || EMPTY} />
+              {/* Job title is not part of the user profile model. */}
               <AboutRow icon={Briefcase} label="Job Title" value={EMPTY} />
-              <AboutRow icon={Phone} label="Phone" value={EMPTY} />
-              <AboutRow icon={Calendar} label="Birth Date" value={EMPTY} />
-              <AboutRow icon={VenusAndMars} label="Gender" value={EMPTY} />
-              <AboutRow icon={CalendarDays} label="Joined Date" value={EMPTY} />
-              <AboutRow icon={FileText} label="Bio" value={EMPTY} />
             </div>
           </section>
 

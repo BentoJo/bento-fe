@@ -14,6 +14,7 @@ export interface ProfileData {
   phone: string | null;
   dob: string | null;
   gender: string | null;
+  createdAt?: string | null;
 }
 
 /**

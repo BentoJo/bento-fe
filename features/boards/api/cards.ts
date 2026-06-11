@@ -240,6 +240,22 @@ export async function removeCardAssignee(
 // LABELS (card level)
 // ---------------------------
 
+export async function listCardLabels(
+  workspaceId: string,
+  boardId: string,
+  cardId: string,
+): Promise<CardLabel[]> {
+  try {
+    const res = await getClientAxios().get<ApiEnvelope<ListLabelsResponse>>(
+      `${cardsPath(workspaceId, boardId)}/${cardId}/labels`,
+    );
+    const labels = unwrap<ListLabelsResponse>(res)?.labels;
+    return Array.isArray(labels) ? labels : [];
+  } catch (error) {
+    fail(error, "Failed to load card labels.");
+  }
+}
+
 export async function addCardLabel(
   workspaceId: string,
   boardId: string,

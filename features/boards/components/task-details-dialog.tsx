@@ -44,6 +44,7 @@ import {
   listCardAssignees,
   listCardChecklists,
   listCardComments,
+  listCardLabels,
   listWorkspaceLabels,
   removeCardAssignee,
   removeCardLabel,
@@ -180,7 +181,7 @@ export function TaskDetailsDialog({
       // Load details in parallel
       const [
         commentsRes,
-        labelsRes,
+        cardLabelsRes,
         wsLabelsRes,
         assigneesRes,
         checklistsRes,
@@ -188,7 +189,7 @@ export function TaskDetailsDialog({
         teamsRes,
       ] = await Promise.allSettled([
         listCardComments(workspaceId, boardId, c.id, { limit: 50 }),
-        Promise.resolve({ labels: c.labels ?? [] }),
+        listCardLabels(workspaceId, boardId, c.id),
         listWorkspaceLabels(workspaceId),
         listCardAssignees(workspaceId, boardId, c.id),
         listCardChecklists(workspaceId, boardId, c.id),
@@ -198,6 +199,9 @@ export function TaskDetailsDialog({
 
       if (commentsRes.status === "fulfilled") {
         setComments(commentsRes.value?.comments ?? []);
+      }
+      if (cardLabelsRes.status === "fulfilled") {
+        setCardLabels(cardLabelsRes.value ?? []);
       }
       if (wsLabelsRes.status === "fulfilled") {
         setWsLabels(wsLabelsRes.value?.labels ?? []);
