@@ -38,6 +38,8 @@ export interface CardAssignee {
   teamId?: string | null;
   assignedBy: string;
   createdAt: string;
+  /** Workspace member behind a 'member' assignee (matches WorkspaceMember.id). */
+  workspaceMemberId?: string | null;
   userId: string; // Legacy UI field
 }
 

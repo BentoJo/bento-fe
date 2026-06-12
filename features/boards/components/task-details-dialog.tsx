@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   CalendarDays,
@@ -421,12 +421,62 @@ export function TaskDetailsDialog({
   // Assignees
   // -------------------------------------------------------------------------
 
-  const isAssigned = (memberId: string) =>
-    assignees.some((a) => a.boardMemberId === memberId || a.userId === memberId);
+  // Members are matched by workspaceMemberId (= WorkspaceMember.id), since the
+  // assignee row itself stores a board-member id we can't compare against.
+  const isAssigned = (workspaceMemberId: string) =>
+    assignees.some(
+      (a) =>
+        a.assigneeType === "member" &&
+        a.workspaceMemberId === workspaceMemberId,
+    );
+
+  // Lookups to resolve an assignee to a real name/avatar from the lists we
+  // already loaded (workspace members + teams).
+  const memberByWsId = useMemo(() => {
+    const m = new Map<string, WorkspaceMember>();
+    for (const x of members) m.set(x.id, x);
+    return m;
+  }, [members]);
+  const teamById = useMemo(() => {
+    const m = new Map<string, TeamListItem>();
+    for (const x of teams) m.set(x.id, x);
+    return m;
+  }, [teams]);
+
+  const describeAssignee = (
+    a: CardAssignee,
+  ): { name: string; avatarUrl?: string | null } => {
+    if (a.assigneeType === "team") {
+      const t = a.teamId ? teamById.get(a.teamId) : undefined;
+      return { name: t?.name ?? "Team" };
+    }
+    const member = a.workspaceMemberId
+      ? memberByWsId.get(a.workspaceMemberId)
+      : undefined;
+    return {
+      name: userFullName(member?.user ?? { id: a.workspaceMemberId ?? a.id }),
+      avatarUrl: member?.user?.avatarUrl,
+    };
+  };
+
+  const removeAssignee = async (a: CardAssignee) => {
+    setAssigneesBusy(true);
+    try {
+      await removeCardAssignee(workspaceId, boardId, card.id, a.id);
+      setAssignees(await listCardAssignees(workspaceId, boardId, card.id));
+      onMutated?.();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to remove assignee.",
+      );
+    } finally {
+      setAssigneesBusy(false);
+    }
+  };
 
   const handleToggleMember = async (member: WorkspaceMember) => {
     const existing = assignees.find(
-      (a) => a.boardMemberId === member.id || a.userId === member.userId,
+      (a) => a.assigneeType === "member" && a.workspaceMemberId === member.id,
     );
     setAssigneesBusy(true);
     try {
@@ -450,6 +500,9 @@ export function TaskDetailsDialog({
   };
 
   const handleAddTeam = async (team: TeamListItem) => {
+    // Avoid assigning the same team twice.
+    if (assignees.some((a) => a.assigneeType === "team" && a.teamId === team.id))
+      return;
     setAssigneesBusy(true);
     try {
       await addCardAssignee(workspaceId, boardId, card.id, {
@@ -1077,20 +1130,41 @@ export function TaskDetailsDialog({
 
               {/* Assignees */}
               <MetaRow icon={<User className="size-4" />} label="Assignee">
-                <div className="flex flex-col gap-1.5 items-end">
+                <div className="flex flex-col gap-1.5 items-end w-full">
                   {assignees.length > 0 ? (
-                    <div className="flex -space-x-2">
-                      {assignees.slice(0, 4).map((a) => (
-                        <Avatar
-                          key={a.id}
-                          className="size-6 border border-background"
-                        >
-                          <AvatarFallback className="text-[10px]">
-                            {initials(a.boardMemberId ?? a.userId ?? a.id)}
-                          </AvatarFallback>
-                        </Avatar>
-                      ))}
-                    </div>
+                    <ul className="flex flex-col gap-1 w-full">
+                      {assignees.map((a) => {
+                        const d = describeAssignee(a);
+                        return (
+                          <li
+                            key={a.id}
+                            className="flex items-center justify-end gap-1.5 group"
+                          >
+                            <Avatar className="size-6 border border-background">
+                              {d.avatarUrl ? (
+                                <AvatarImage src={d.avatarUrl} alt={d.name} />
+                              ) : null}
+                              <AvatarFallback className="text-[10px]">
+                                {initials(d.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate text-sm text-foreground max-w-[140px]">
+                              {d.name}
+                              {a.assigneeType === "team" ? " (team)" : ""}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => void removeAssignee(a)}
+                              disabled={assigneesBusy}
+                              aria-label={`Remove ${d.name}`}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="size-3.5 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   ) : (
                     <span className="text-sm text-muted-foreground">Unassigned</span>
                   )}
