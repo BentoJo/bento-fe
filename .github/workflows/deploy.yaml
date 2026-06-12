@@ -32,5 +32,17 @@ jobs:
             git reset --hard origin/main
             docker compose up -d --build --force-recreate
             docker image prune -f
-            sleep 5
-            curl -fsS -o /dev/null http://127.0.0.1:3000/ && echo "FE is up on :3000"
+            # Poll the healthcheck instead of a single one-shot curl: a fresh
+            # container can take >5s to start serving, which used to fail the
+            # deploy even though it actually came up.
+            for i in $(seq 1 20); do
+              if curl -fsS -o /dev/null http://127.0.0.1:3000/; then
+                echo "FE is up on :3000 (after ${i} attempt(s))"
+                exit 0
+              fi
+              echo "waiting for FE to come up... (${i}/20)"
+              sleep 3
+            done
+            echo "FE did not respond on :3000 within ~60s"
+            docker compose logs --tail=40 || true
+            exit 1
