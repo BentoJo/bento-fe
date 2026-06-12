@@ -245,6 +245,19 @@ export function TaskDetailsDialog({
     }
   }, [open, card, loadCardData]);
 
+  // Lookups to resolve an assignee to a real name/avatar from the lists we
+  // already loaded. Declared before the early return so hook order is stable.
+  const memberByWsId = useMemo(() => {
+    const m = new Map<string, WorkspaceMember>();
+    for (const x of members) m.set(x.id, x);
+    return m;
+  }, [members]);
+  const teamById = useMemo(() => {
+    const m = new Map<string, TeamListItem>();
+    for (const x of teams) m.set(x.id, x);
+    return m;
+  }, [teams]);
+
   if (!card) return null;
 
   // -------------------------------------------------------------------------
@@ -429,19 +442,6 @@ export function TaskDetailsDialog({
         a.assigneeType === "member" &&
         a.workspaceMemberId === workspaceMemberId,
     );
-
-  // Lookups to resolve an assignee to a real name/avatar from the lists we
-  // already loaded (workspace members + teams).
-  const memberByWsId = useMemo(() => {
-    const m = new Map<string, WorkspaceMember>();
-    for (const x of members) m.set(x.id, x);
-    return m;
-  }, [members]);
-  const teamById = useMemo(() => {
-    const m = new Map<string, TeamListItem>();
-    for (const x of teams) m.set(x.id, x);
-    return m;
-  }, [teams]);
 
   const describeAssignee = (
     a: CardAssignee,
