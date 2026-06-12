@@ -110,8 +110,8 @@ function formatDate(value?: string): string {
   });
 }
 
-function initials(userId: string): string {
-  return userId.slice(0, 2).toUpperCase();
+function initials(value?: string | null): string {
+  return (value ?? "?").slice(0, 2).toUpperCase();
 }
 
 /** ISO/date string -> "YYYY-MM-DD" for <input type="date">. */
@@ -432,14 +432,15 @@ export function TaskDetailsDialog({
     try {
       if (existing) {
         await removeCardAssignee(workspaceId, boardId, card.id, existing.id);
-        setAssignees((prev) => prev.filter((a) => a.id !== existing.id));
       } else {
-        const newAssignee = await addCardAssignee(workspaceId, boardId, card.id, {
+        // The add endpoint returns an ack ({success}), not the assignee row —
+        // refetch the real list so the UI has valid assignee objects.
+        await addCardAssignee(workspaceId, boardId, card.id, {
           assigneeType: "member",
           boardMemberId: member.id,
         });
-        setAssignees((prev) => [...prev, newAssignee]);
       }
+      setAssignees(await listCardAssignees(workspaceId, boardId, card.id));
       onMutated?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update assignee.");
@@ -451,11 +452,11 @@ export function TaskDetailsDialog({
   const handleAddTeam = async (team: TeamListItem) => {
     setAssigneesBusy(true);
     try {
-      const newAssignee = await addCardAssignee(workspaceId, boardId, card.id, {
+      await addCardAssignee(workspaceId, boardId, card.id, {
         assigneeType: "team",
         teamId: team.id,
       });
-      setAssignees((prev) => [...prev, newAssignee]);
+      setAssignees(await listCardAssignees(workspaceId, boardId, card.id));
       onMutated?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add team.");
