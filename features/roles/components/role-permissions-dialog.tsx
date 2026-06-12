@@ -66,8 +66,10 @@ export function RolePermissionsDialog({
   const [allPermsLoading, setAllPermsLoading] = useState(false);
   const [allPermsError, setAllPermsError] = useState<string | null>(null);
 
-  // Permissions currently assigned to this role (ids as strings)
-  const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
+  // Permissions currently assigned to this role, AS RETURNED by the backend.
+  // NOTE: getRolePermissions returns permission NAMES (e.g. "workspace:boards:read"),
+  // while the catalogue toggles by permission ID. We reconcile the two below.
+  const [rolePermRaw, setRolePermRaw] = useState<string[]>([]);
   const [rolePermsLoading, setRolePermsLoading] = useState(false);
   const [rolePermsError, setRolePermsError] = useState<string | null>(null);
 
@@ -105,12 +107,8 @@ export function RolePermissionsDialog({
     setRolePermsLoading(true);
     setRolePermsError(null);
     getRolePermissions(workspaceId, authzRoleId)
-      .then((ids) => {
-        if (active) {
-          const s = new Set(ids);
-          setAssignedIds(s);
-          setPendingIds(new Set(s));
-        }
+      .then((perms) => {
+        if (active) setRolePermRaw(Array.isArray(perms) ? perms : []);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -132,7 +130,7 @@ export function RolePermissionsDialog({
   useEffect(() => {
     if (!role) {
       setAllPermissions([]);
-      setAssignedIds(new Set());
+      setRolePermRaw([]);
       setPendingIds(new Set());
       setAllPermsError(null);
       setRolePermsError(null);
@@ -144,6 +142,35 @@ export function RolePermissionsDialog({
   // Only custom (non built-in) roles may have their permissions edited.
   // System roles ship a fixed permission set and are shown read-only.
   const editable = !!role && !role.isSystemRole;
+
+  // Reconcile the role's permissions (returned as names) against the catalogue
+  // (keyed by id). Accept either form so it works regardless of what the
+  // backend returns: keep ids as-is, map names -> ids.
+  const idByName = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of allPermissions) m.set(p.name, p.id);
+    return m;
+  }, [allPermissions]);
+  const validIds = useMemo(
+    () => new Set(allPermissions.map((p) => p.id)),
+    [allPermissions],
+  );
+  const assignedIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const x of rolePermRaw) {
+      if (validIds.has(x)) s.add(x);
+      else {
+        const id = idByName.get(x);
+        if (id) s.add(id);
+      }
+    }
+    return s;
+  }, [rolePermRaw, validIds, idByName]);
+
+  // Once the catalogue + role perms are loaded, seed the editable selection.
+  useEffect(() => {
+    setPendingIds(new Set(assignedIds));
+  }, [assignedIds]);
 
   const isDirty = useMemo(() => {
     if (pendingIds.size !== assignedIds.size) return true;
@@ -185,7 +212,8 @@ export function RolePermissionsDialog({
         });
       }
 
-      setAssignedIds(new Set(pendingIds));
+      // Reflect the saved selection (ids are valid catalogue ids).
+      setRolePermRaw([...pendingIds]);
       toast.success("Role permissions updated.");
     } catch (err) {
       toast.error(getErrorMessage(err) || "Failed to save permissions.");
@@ -245,8 +273,9 @@ export function RolePermissionsDialog({
               {rolePermsError}
             </div>
           ) : showFallbackReadOnly ? (
-            // Read-only fallback when getPermissions is not yet implemented
-            <FallbackReadOnly assignedIds={assignedIds} />
+            // Read-only fallback when getPermissions is unavailable: show the
+            // role's permissions as returned (names), since we can't map to ids.
+            <FallbackReadOnly items={rolePermRaw} />
           ) : allPermissions.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-10 text-center">
               <KeyRound className="size-8 text-muted-foreground/50" aria-hidden />
@@ -351,9 +380,9 @@ export function RolePermissionsDialog({
   );
 }
 
-/** Read-only fallback: shows currently assigned permission ids as badges. */
-function FallbackReadOnly({ assignedIds }: { assignedIds: Set<string> }) {
-  const ids = [...assignedIds].sort();
+/** Read-only fallback: shows currently assigned permissions as badges. */
+function FallbackReadOnly({ items }: { items: string[] }) {
+  const ids = [...items].sort();
   if (ids.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-10 text-center">
