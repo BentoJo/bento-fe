@@ -114,6 +114,13 @@ function initials(userId: string): string {
   return userId.slice(0, 2).toUpperCase();
 }
 
+/** ISO/date string -> "YYYY-MM-DD" for <input type="date">. */
+function toDateInput(value?: string | null): string {
+  if (!value) return "";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+}
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -283,6 +290,44 @@ export function TaskDetailsDialog({
     } finally {
       setIsBusy(false);
       setEditingDesc(false);
+    }
+  };
+
+  const savePriority = async (priority: CardPriority) => {
+    if (priority === card.priority) return;
+    setIsBusy(true);
+    try {
+      await updateCard(workspaceId, boardId, card.id, {
+        columnId: card.columnId,
+        priority,
+      });
+      card.priority = priority;
+      toast.success("Priority updated.");
+      onMutated?.();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update priority.",
+      );
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const saveDate = async (field: "startDate" | "dueDate", value: string) => {
+    const iso = value ? new Date(value).toISOString() : undefined;
+    setIsBusy(true);
+    try {
+      await updateCard(workspaceId, boardId, card.id, {
+        columnId: card.columnId,
+        [field]: iso,
+      });
+      card[field] = iso;
+      toast.success("Date updated.");
+      onMutated?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update date.");
+    } finally {
+      setIsBusy(false);
     }
   };
 
@@ -626,19 +671,7 @@ export function TaskDetailsDialog({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("open-edit-task", { detail: card }),
-                    );
-                  }}
-                  className="border-0 cursor-pointer h-9 w-9 p-0"
-                >
-                  <Edit className="text-[#64748B] size-4" />
-                </Button>
+                {/* Edit modal removed — everything is edited inline here. */}
               </div>
             }
             className="flex flex-row items-center justify-between gap-2 border-b border-border p-5"
@@ -1128,29 +1161,66 @@ export function TaskDetailsDialog({
                 </div>
               </MetaRow>
 
-              {/* Priority */}
+              {/* Priority — editable */}
               <MetaRow icon={<Flag className="size-4" />} label="Priority">
-                <span
-                  className={cn(
-                    "inline-block rounded border px-2 py-0.5 text-xs font-medium",
-                    card.priority ? PRIORITY_STYLE[card.priority] : "text-muted-foreground",
-                  )}
-                >
-                  {card.priority ? PRIORITY_LABEL[card.priority] : "—"}
-                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      className={cn(
+                        "inline-block rounded border px-2 py-0.5 text-xs font-medium cursor-pointer transition-colors",
+                        card.priority
+                          ? PRIORITY_STYLE[card.priority]
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {card.priority ? PRIORITY_LABEL[card.priority] : "Set priority"}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-32">
+                    {(["low", "medium", "high"] as CardPriority[]).map((p) => (
+                      <DropdownMenuItem
+                        key={p}
+                        onClick={() => void savePriority(p)}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <Flag
+                          className={cn(
+                            "size-3.5",
+                            p === "high" && "text-destructive",
+                            p === "medium" && "text-warning",
+                            p === "low" && "text-success",
+                          )}
+                        />
+                        {PRIORITY_LABEL[p]}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </MetaRow>
 
-              {/* Dates */}
+              {/* Dates — editable */}
               <MetaRow icon={<CalendarDays className="size-4" />} label="Start">
-                <span className="text-sm text-foreground">
-                  {formatDate(card.startDate)}
-                </span>
+                <input
+                  key={`start-${card.id}`}
+                  type="date"
+                  defaultValue={toDateInput(card.startDate)}
+                  disabled={isBusy}
+                  onChange={(e) => void saveDate("startDate", e.target.value)}
+                  className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
+                />
               </MetaRow>
 
               <MetaRow icon={<CalendarDays className="size-4" />} label="Due">
-                <span className="text-sm text-foreground">
-                  {formatDate(card.dueDate)}
-                </span>
+                <input
+                  key={`due-${card.id}`}
+                  type="date"
+                  defaultValue={toDateInput(card.dueDate)}
+                  disabled={isBusy}
+                  onChange={(e) => void saveDate("dueDate", e.target.value)}
+                  className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
+                />
               </MetaRow>
 
               <MetaRow icon={<Paperclip className="size-4" />} label="Attachments">

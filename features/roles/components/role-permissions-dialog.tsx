@@ -141,6 +141,10 @@ export function RolePermissionsDialog({
 
   const isLoading = allPermsLoading || rolePermsLoading;
 
+  // Only custom (non built-in) roles may have their permissions edited.
+  // System roles ship a fixed permission set and are shown read-only.
+  const editable = !!role && !role.isSystemRole;
+
   const isDirty = useMemo(() => {
     if (pendingIds.size !== assignedIds.size) return true;
     for (const id of pendingIds) {
@@ -207,7 +211,9 @@ export function RolePermissionsDialog({
             {role?.roleName ?? "Role"} — Permissions
           </DialogTitle>
           <DialogDescription>
-            Toggle permissions assigned to this role, then save.
+            {editable
+              ? "Toggle permissions assigned to this role, then save."
+              : "Built-in role — its permissions are fixed and read-only."}
           </DialogDescription>
         </DialogHeader>
 
@@ -262,8 +268,9 @@ export function RolePermissionsDialog({
                         <li key={perm.id}>
                           <button
                             type="button"
-                            onClick={() => togglePermission(perm.id)}
-                            className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                            onClick={() => editable && togglePermission(perm.id)}
+                            disabled={!editable}
+                            className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent disabled:cursor-default disabled:hover:bg-transparent"
                           >
                             <span
                               className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
@@ -298,8 +305,8 @@ export function RolePermissionsDialog({
           )}
         </ScrollArea>
 
-        {/* Footer: only show save/reset when full edit mode is available */}
-        {!showFallbackReadOnly && !isLoading && !rolePermsError ? (
+        {/* Footer: only show save/reset for editable (custom) roles */}
+        {editable && !showFallbackReadOnly && !isLoading && !rolePermsError ? (
           <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"

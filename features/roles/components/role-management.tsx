@@ -136,7 +136,7 @@ function RoleRow({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={() => onViewPermissions(role)}>
               <Eye className="size-4" aria-hidden />
-              View permissions
+              {role.isSystemRole ? "View permissions" : "Manage permissions"}
             </DropdownMenuItem>
             {!role.isSystemRole ? (
               <>
